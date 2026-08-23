@@ -1,0 +1,17 @@
+{
+  "name": "aquamarine",
+  "private": true,
+  "description": "An unofficial digital adaptation of Aquamarine, the print-and-play roll-and-write by Postmark Games. Built on gamekit.",
+  "scripts": {
+    "test": "node --test",
+    "maps": "node tools/extract-map.js --write && node tools/label.js && node tools/lint-map.js",
+    "extract": "node tools/extract-map.js --write",
+    "label": "node tools/label.js",
+    "lint-maps": "node tools/lint-map.js",
+    "geometry": "node tools/fit-geometry.js",
+    "icons": "node tools/make-icons.js"
+  },
+  "dependencies": {
+    "sharp": "^0.35.3"
+  }
+}

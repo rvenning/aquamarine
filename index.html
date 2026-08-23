@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Aquamarine</title>
+<meta name="description" content="An unofficial digital adaptation of Aquamarine, the print-and-play roll-and-write by Postmark Games.">
+<meta name="theme-color" content="#12232e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="lib/gk-base.css">
+<link rel="stylesheet" href="css/aquamarine.css">
+</head>
+<body>
+
+<!-- ── who is diving ─────────────────────────────────────────────────── -->
+<div class="screen active" id="screen-profiles">
+  <div class="aq-title">
+    <h1>Aquamarine</h1>
+    <p class="aq-sub">Chart the reef, one box at a time</p>
+  </div>
+  <div id="gk-profile-list" class="gk-profiles"></div>
+  <p class="aq-credit">
+    An unofficial adaptation of the print-and-play by
+    <strong>Postmark Games</strong> — designed by Matthew Dunstan and Rory
+    Muldoon. Not affiliated with or endorsed by them.
+  </p>
+</div>
+
+<!-- ── which map ─────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-maps">
+  <header class="aq-bar">
+    <button class="btn btn-grey btn-back" data-screen="profiles">←</button>
+    <span class="aq-who" id="aq-who"></span>
+    <button class="btn btn-grey btn-sound">🔊</button>
+  </header>
+  <h2 class="aq-h2">Choose an expedition</h2>
+  <div class="aq-maps" id="aq-maps"></div>
+  <div class="aq-menu-row">
+    <button class="btn btn-blue" id="btn-logbook">Logbook</button>
+    <button class="btn btn-grey" id="btn-rules">How to play</button>
+  </div>
+</div>
+
+<!-- ── the dive ──────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-game">
+  <header class="aq-bar">
+    <button class="btn btn-grey btn-back" data-screen="maps">←</button>
+    <span class="aq-mapname" id="aq-mapname"></span>
+    <span class="aq-score" id="aq-score">0</span>
+  </header>
+
+  <div class="aq-board-wrap">
+    <canvas id="aq-board"></canvas>
+    <button class="aq-zoom" id="aq-zoom" title="Zoom">⤢</button>
+  </div>
+
+  <div class="aq-hud">
+    <div class="aq-hud-left">
+      <div class="aq-turn">
+        <span class="aq-turn-n" id="aq-turn">1</span><span class="aq-turn-of">/24</span>
+        <span class="aq-phase" id="aq-phase">☀︎ day</span>
+      </div>
+      <div class="aq-tanks" id="aq-tanks"></div>
+    </div>
+    <div class="aq-hud-right">
+      <div class="aq-dice" id="aq-dice"></div>
+      <div class="aq-choices" id="aq-choices"></div>
+    </div>
+  </div>
+
+  <div class="aq-actions">
+    <span class="aq-hint" id="aq-hint">Roll to begin</span>
+    <button class="btn btn-grey" id="btn-surface" hidden>Surface early</button>
+    <button class="btn btn-green" id="btn-roll">Roll the dice</button>
+  </div>
+</div>
+
+<!-- ── the log ───────────────────────────────────────────────────────── -->
+<div class="screen" id="screen-result">
+  <header class="aq-bar">
+    <button class="btn btn-grey btn-back" data-screen="maps">←</button>
+    <span class="aq-mapname" id="aq-result-map"></span>
+  </header>
+  <div class="aq-result" id="aq-result"></div>
+  <div class="aq-menu-row">
+    <button class="btn btn-green" id="btn-again">Dive again</button>
+    <button class="btn btn-grey" data-screen="maps">Back to the maps</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-logbook">
+  <header class="aq-bar">
+    <button class="btn btn-grey btn-back" data-screen="maps">←</button>
+    <span class="aq-mapname">Logbook</span>
+  </header>
+  <div class="aq-logbook" id="aq-logbook"></div>
+</div>
+
+<div class="modal" id="modal-rules"><div class="modal-card" id="aq-rules-body"></div></div>
+<div class="modal" id="modal-bonus">
+  <div class="modal-card">
+    <h3>Shipwreck explored</h3>
+    <p class="aq-modal-sub">Circle a bonus. Each may be taken once.</p>
+    <div class="aq-bonus-list" id="aq-bonus-list"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="lib/gk-util.js"></script>
+<script src="lib/gk-audio.js"></script>
+<script src="lib/gk-ui.js"></script>
+<script src="lib/gk-storage.js"></script>
+<script src="lib/gk-profiles.js"></script>
+<script src="lib/gk-pwa.js"></script>
+<script src="lib/gk-debug.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/engine/board.js"></script>
+<script src="js/engine/shapes.js"></script>
+<script src="js/engine/dice.js"></script>
+<script src="js/engine/state.js"></script>
+<script src="js/engine/scoring.js"></script>
+<script src="js/engine/rules/map1.js"></script>
+<script src="js/render/board.js"></script>
+<script src="js/maps.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

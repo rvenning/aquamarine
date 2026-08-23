@@ -1,0 +1,220 @@
+/* Aquamarine — the game's own styling over gamekit's base.
+ *
+ * The sheets are the design. Everything here is chrome around them: a deep
+ * teal ground taken from the artwork's own water, a warm amber for the things
+ * you have drawn, and as little furniture as the game can get away with. The
+ * board wants the screen; the HUD gets what is left.
+ */
+
+:root {
+  --aq-deep: #0d2733;
+  --aq-mid: #12394a;
+  --aq-water: #66c6bb;
+  --aq-ink: #eaf6f4;
+  --aq-dive1: #ffb32b;
+  --aq-dive2: #43c65a;
+  --aq-dive3: #3f9be0;
+  --aq-night: #8f7bd8;
+}
+
+body {
+  background:
+    radial-gradient(120% 90% at 50% 0%, #17475b 0%, var(--aq-deep) 60%, #071a23 100%);
+  color: var(--aq-ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  overscroll-behavior: none;
+}
+
+.screen { display: none; }
+.screen.active { display: flex; flex-direction: column; min-height: 100dvh; }
+
+/* ── title ─────────────────────────────────────────────────────────────── */
+
+.aq-title { text-align: center; padding: 8vh 1rem 1.5rem; }
+.aq-title h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 11vw, 3.6rem);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(0,0,0,.35);
+}
+.aq-sub { margin: .4rem 0 0; color: var(--aq-water); font-size: .95rem; letter-spacing: .04em; }
+
+.aq-credit {
+  margin: auto 1.25rem 1.5rem;
+  font-size: .74rem;
+  line-height: 1.5;
+  color: rgba(234,246,244,.55);
+  text-align: center;
+  max-width: 34rem;
+  align-self: center;
+}
+.aq-credit strong { color: rgba(234,246,244,.8); }
+
+/* ── bars and headings ─────────────────────────────────────────────────── */
+
+.aq-bar {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .55rem .7rem;
+  padding-top: max(.55rem, env(safe-area-inset-top));
+  background: rgba(0,0,0,.22);
+}
+.aq-bar .btn { padding: .35rem .7rem; font-size: 1rem; }
+.aq-who, .aq-mapname { flex: 1; font-weight: 700; letter-spacing: .02em; }
+.aq-score {
+  font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.15rem;
+  color: var(--aq-dive1);
+}
+.aq-h2 { margin: 1.2rem 1rem .6rem; font-size: 1rem; letter-spacing: .16em; text-transform: uppercase; color: var(--aq-water); }
+
+/* ── map list ──────────────────────────────────────────────────────────── */
+
+.aq-maps { display: flex; flex-direction: column; gap: .55rem; padding: 0 .8rem; }
+.aq-map {
+  display: flex; align-items: center; gap: .85rem;
+  width: 100%; text-align: left;
+  padding: .8rem .9rem;
+  border: 0; border-radius: 14px;
+  background: rgba(255,255,255,.07);
+  color: inherit; font: inherit; cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+.aq-map:hover:not(:disabled) { background: rgba(255,255,255,.13); }
+.aq-map:active:not(:disabled) { transform: translateY(1px); }
+.aq-map-soon { opacity: .42; cursor: default; }
+.aq-map-n {
+  font-size: 1.5rem; font-weight: 800; color: var(--aq-water);
+  font-variant-numeric: tabular-nums; min-width: 2ch;
+}
+.aq-map-body { flex: 1; display: flex; flex-direction: column; gap: .15rem; }
+.aq-map-blurb { font-size: .8rem; color: rgba(234,246,244,.6); }
+.aq-map-best { font-size: .8rem; color: var(--aq-dive1); white-space: nowrap; }
+
+.aq-medal { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; margin-right: .3rem; }
+.aq-medal-gold { background: #ffce3b; }
+.aq-medal-silver { background: #cfd8dd; }
+.aq-medal-bronze { background: #c98a4b; }
+
+.aq-menu-row { display: flex; gap: .6rem; justify-content: center; padding: 1.2rem .8rem; margin-top: auto; }
+
+/* ── the board ─────────────────────────────────────────────────────────── */
+
+.aq-board-wrap { position: relative; flex: 1; min-height: 0; }
+#aq-board { display: block; width: 100%; height: 100%; touch-action: none; }
+.aq-zoom {
+  position: absolute; right: .6rem; bottom: .6rem;
+  width: 2.4rem; height: 2.4rem; border-radius: 50%;
+  border: 0; background: rgba(0,0,0,.45); color: #fff; font-size: 1.1rem; cursor: pointer;
+}
+
+/* ── HUD ───────────────────────────────────────────────────────────────── */
+
+.aq-hud {
+  display: flex; gap: .8rem; align-items: flex-start; justify-content: space-between;
+  padding: .5rem .8rem 0;
+  background: rgba(0,0,0,.24);
+}
+.aq-hud-left { display: flex; flex-direction: column; gap: .35rem; }
+.aq-hud-right { display: flex; flex-direction: column; gap: .4rem; align-items: flex-end; }
+
+.aq-turn { display: flex; align-items: baseline; gap: .2rem; }
+.aq-turn-n { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.aq-turn-of { color: rgba(234,246,244,.5); font-size: .85rem; }
+.aq-phase { margin-left: .5rem; font-size: .8rem; padding: .1rem .5rem; border-radius: 999px; }
+.aq-phase.is-day { background: rgba(255,206,59,.2); color: #ffce3b; }
+.aq-phase.is-night { background: rgba(143,123,216,.22); color: var(--aq-night); }
+
+/* Three tanks of twelve, laid out like the pips printed on the sheet. */
+.aq-tanks { display: flex; gap: .5rem; }
+.aq-tank { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; opacity: .4; }
+.aq-tank.is-current { opacity: 1; }
+.aq-tank.is-done { opacity: .22; }
+.aq-tank i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: transparent; border: 1.5px solid var(--aq-water);
+}
+.aq-tank i.spent { background: var(--aq-water); border-color: var(--aq-water); opacity: .35; }
+
+.aq-dice { display: flex; gap: .35rem; }
+.aq-die {
+  width: 2rem; height: 2rem; border-radius: 8px;
+  background: #fff; color: var(--aq-deep);
+  display: grid; place-items: center;
+  font-weight: 800; font-size: 1.1rem;
+}
+
+.aq-choices { display: flex; gap: .4rem; }
+.aq-choice {
+  display: flex; align-items: center; gap: .45rem;
+  padding: .35rem .6rem; border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.06); color: inherit; font: inherit; cursor: pointer;
+}
+.aq-choice.is-picked { border-color: var(--aq-dive1); background: rgba(255,179,43,.18); }
+.aq-choice strong { font-size: 1.15rem; }
+.aq-choice span { display: flex; flex-direction: column; font-size: .72rem; line-height: 1.25; text-align: left; }
+.aq-choice em { font-style: normal; color: rgba(234,246,244,.55); }
+
+.aq-actions {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .55rem .8rem;
+  padding-bottom: max(.55rem, env(safe-area-inset-bottom));
+  background: rgba(0,0,0,.24);
+}
+.aq-hint { flex: 1; font-size: .82rem; color: rgba(234,246,244,.75); }
+
+/* ── result ────────────────────────────────────────────────────────────── */
+
+.aq-result { padding: 1rem .9rem; overflow-y: auto; }
+.aq-verdict { text-align: center; padding: 1.2rem 0 1.4rem; }
+.aq-total { display: block; font-size: 3.4rem; font-weight: 800; line-height: 1; color: var(--aq-dive1); }
+.aq-verdict strong { display: block; margin-top: .3rem; letter-spacing: .14em; text-transform: uppercase; font-size: .9rem; }
+.aq-verdict em { display: block; margin-top: .5rem; font-style: normal; font-size: .82rem; color: rgba(234,246,244,.65); }
+.aq-verdict.is-fail .aq-total { color: #e94f4f; }
+
+.aq-breakdown { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.aq-breakdown tr { border-top: 1px solid rgba(255,255,255,.08); }
+.aq-breakdown th { text-align: left; font-weight: 600; padding: .5rem .4rem .5rem 0; white-space: nowrap; }
+.aq-breakdown td { padding: .5rem .4rem; }
+.aq-breakdown td:first-of-type { font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; width: 3ch; }
+.aq-breakdown td:last-child { color: rgba(234,246,244,.55); font-size: .78rem; }
+
+/* ── logbook ───────────────────────────────────────────────────────────── */
+
+.aq-logbook { padding: 1rem .9rem; overflow-y: auto; }
+.aq-log-map { margin-bottom: 1.6rem; }
+.aq-log-map h3 { margin: 0 0 .5rem; font-size: .95rem; letter-spacing: .1em; text-transform: uppercase; color: var(--aq-water); }
+.aq-scores { width: 100%; border-collapse: collapse; font-size: .85rem; margin-bottom: .6rem; }
+.aq-scores td { padding: .35rem .3rem; border-top: 1px solid rgba(255,255,255,.08); }
+.aq-scores td:nth-child(3) { font-weight: 700; font-variant-numeric: tabular-nums; }
+.aq-history { list-style: none; margin: 0; padding: 0; font-size: .8rem; }
+.aq-history li { display: flex; gap: .6rem; align-items: baseline; padding: .28rem 0; border-top: 1px dashed rgba(255,255,255,.07); }
+.aq-history span { color: rgba(234,246,244,.5); min-width: 6.5rem; }
+.aq-history strong { font-variant-numeric: tabular-nums; min-width: 3ch; }
+.aq-history em { font-style: normal; color: rgba(234,246,244,.55); }
+.aq-empty { color: rgba(234,246,244,.55); text-align: center; padding: 3rem 1rem; }
+
+/* ── modals ────────────────────────────────────────────────────────────── */
+
+.aq-modal-sub { color: rgba(0,0,0,.55); font-size: .85rem; margin: .2rem 0 .8rem; }
+.aq-bonus-list { display: flex; flex-direction: column; gap: .4rem; }
+.aq-bonus {
+  padding: .6rem .8rem; border-radius: 10px; border: 1.5px solid var(--gk-input-border);
+  background: #fff; color: var(--gk-ink); font: inherit; cursor: pointer; text-align: left;
+}
+.aq-bonus:disabled { opacity: .35; cursor: default; text-decoration: line-through; }
+.aq-modal-credit { font-size: .74rem; color: rgba(0,0,0,.5); margin-top: 1rem; }
+
+/* ── wider screens: the board and the HUD side by side ─────────────────── */
+
+@media (min-width: 900px) and (orientation: landscape) {
+  #screen-game.active { display: grid; grid-template-columns: 1fr 22rem; grid-template-rows: auto 1fr auto; }
+  .aq-bar { grid-column: 1 / -1; }
+  .aq-board-wrap { grid-row: 2 / 4; }
+  .aq-hud { flex-direction: column; align-items: stretch; gap: .9rem; padding: 1rem; }
+  .aq-hud-right { align-items: stretch; }
+  .aq-choices { flex-direction: column; }
+  .aq-actions { grid-column: 2; }
+}

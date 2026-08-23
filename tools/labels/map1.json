@@ -1,0 +1,121 @@
+{
+  "_": "Hand labels for Map 1 -- Exploratory Expedition. Read off the contact sheet from tools/kinds-sheet.js, which draws each distinct printed picture in colour. `kinds` maps a kind id to what the picture is; `palette` maps a background colour to what the square is made of. Re-running tools/extract-map.js --write regenerates the data and tools/label.js re-applies these; tools/lint-map.js then checks the resulting counts against the Diver's Log, which states outright how many shipwrecks, beacons, stingrays and coral this sheet holds.",
+  "kinds": {
+    "0": "fish",
+    "1": "fish",
+    "2": "fish",
+    "3": "coral-purple",
+    "4": "coral-orange",
+    "5": "jellyfish",
+    "6": "jellyfish",
+    "7": "coral-purple",
+    "8": "coral-orange",
+    "9": "bubbles",
+    "10": "flag",
+    "11": "coral-purple",
+    "12": "coral-purple",
+    "13": "coral-orange",
+    "14": "bubbles",
+    "15": "beacon",
+    "16": "coral-orange",
+    "17": "coral-orange",
+    "18": "stingray",
+    "19": "bubbles",
+    "20": "wreck",
+    "21": "wreck",
+    "22": "wreck",
+    "23": "flag",
+    "24": "flag",
+    "25": "cuttlefish",
+    "26": "cuttlefish",
+    "27": "cuttlefish",
+    "28": "cuttlefish",
+    "29": "wreck",
+    "30": "beacon",
+    "31": "beacon",
+    "32": "jellyfish",
+    "33": "jellyfish",
+    "34": "jellyfish",
+    "35": "jellyfish",
+    "36": "coral-purple",
+    "37": "coral-purple",
+    "38": "flag",
+    "39": "stingray",
+    "40": "coral-orange",
+    "41": "coral-orange",
+    "42": "stingray",
+    "43": "bubbles",
+    "44": "bubbles"
+  },
+  "palette": {
+    "0": "water",
+    "1": "rock",
+    "2": "water",
+    "3": "water",
+    "4": "rock",
+    "5": "water"
+  },
+  "paletteNotes": "Entries 2 and 3 are the sheet's lighter water textures -- the same open water, painted with a wash. Entry 4 is the darker inner shading of a rock block and entry 5 is a single cell taken over by the shipwreck's hull, which is water underneath.",
+  "structure": {
+    "_": "Hand-authored constants read off the printed sheet and the Diver's Log. These are panel furniture rather than grid content -- there are a handful per map and reading them off is quicker and surer than teaching the extractor to find each one.",
+    "flagValues": {
+      "13,7": 4,
+      "0,8": 8,
+      "17,8": 6,
+      "10,15": 10,
+      "21,15": 12,
+      "3,21": 18,
+      "_": "Keyed by the cell holding the FLAG ICON, which is the square you must enclose. The numbered badge hangs one cell below on a pole and is a label, not a target -- the 18-point flag at 3,21 proves it, since its badge sits at row 22, off the bottom of the board and impossible to enclose."
+    },
+    "diveMarks": [
+      9,
+      12,
+      15
+    ],
+    "diveMarksNote": "Row boundaries a dive must get BELOW, from the triangle markers down the right margin. Reaching all three on every dive is the solo game's gold result; the first is the pass/fail line.",
+    "tanks": [
+      12,
+      12,
+      12
+    ],
+    "turns": 24,
+    "wheel": {
+      "ticks": 24,
+      "dayTicks": [
+        0,
+        11
+      ],
+      "starts": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20
+      ],
+      "_": "The turn track is a 24-tick wheel with six numbered entry points, one per face of the die rolled at setup. Ticks 0-11 (clockwise from the top, the sun side) are day; 12-23 are night. Where you start therefore decides how the 24 turns split, which is the whole reason the setup roll exists."
+    },
+    "ranks": [
+      {
+        "name": "Flounderer",
+        "from": 0
+      },
+      {
+        "name": "Beginner",
+        "from": 41
+      },
+      {
+        "name": "Day tripper",
+        "from": 71
+      },
+      {
+        "name": "Master",
+        "from": 91
+      },
+      {
+        "name": "Instructor",
+        "from": 111
+      }
+    ]
+  }
+}

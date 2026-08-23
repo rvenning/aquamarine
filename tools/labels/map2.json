@@ -1,0 +1,128 @@
+{
+  "_": "Hand labels for Map 2 -- Apex Predators. Adds dark caves (which cost a torch to enter at night), four research tracks, colossal squid spanning 7 to 11 squares, and sharks that cost points. See tools/labels/map1.json for how this file is used.",
+  "kinds": {
+    "0": "fish",
+    "1": "bubbles",
+    "2": "shark",
+    "3": "fish",
+    "4": "flag",
+    "5": "cuttlefish",
+    "6": "beacon",
+    "7": "research",
+    "8": "bubbles",
+    "9": "fish",
+    "10": "research",
+    "11": "research",
+    "12": "stingray",
+    "13": "bubbles",
+    "14": "ignore",
+    "15": "squid",
+    "16": "squid",
+    "17": "squid",
+    "18": "shark",
+    "19": "shark",
+    "20": "flag",
+    "21": "flag",
+    "22": "cuttlefish",
+    "23": "cuttlefish",
+    "24": "beacon",
+    "25": "flag",
+    "26": "fish",
+    "27": "research",
+    "28": "stingray",
+    "29": "stingray",
+    "30": "stingray",
+    "31": "bubbles"
+  },
+  "kindNotes": "14 is a pair of two-pixel specks left over where a flag pole was cut at the play-area edge -- 'ignore' means it is deliberately not content, as opposed to not yet looked at.",
+  "palette": {
+    "0": "water",
+    "1": "rock",
+    "2": "water",
+    "3": "cave",
+    "4": "water",
+    "5": "water",
+    "6": "rock"
+  },
+  "paletteNotes": "Entry 3, rgb(123,183,180), is the shaded water of the dark caves: enterable, but only in daylight or by spending a torch. Entry 4 is the purple of a colossal squid's body read through to the background, and entry 5 a lighter water wash.",
+  "structure": {
+    "flagValues": {
+      "3,8": 8,
+      "18,8": 6,
+      "21,13": 12,
+      "11,14": 12,
+      "16,16": 14,
+      "7,20": 16
+    },
+    "diveMarks": [
+      9,
+      12,
+      15
+    ],
+    "tanks": [
+      12,
+      12,
+      12
+    ],
+    "turns": 24,
+    "torches": 3,
+    "wheel": {
+      "ticks": 24,
+      "dayTicks": [
+        0,
+        11
+      ],
+      "starts": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20
+      ]
+    },
+    "ranks": [
+      {
+        "name": "Flounderer",
+        "from": 0
+      },
+      {
+        "name": "Beginner",
+        "from": 41
+      },
+      {
+        "name": "Day tripper",
+        "from": 71
+      },
+      {
+        "name": "Master",
+        "from": 91
+      },
+      {
+        "name": "Instructor",
+        "from": 111
+      }
+    ]
+  },
+  "colourSymbols": [
+    {
+      "symbol": "research",
+      "rgb": [
+        254,
+        218,
+        0
+      ],
+      "tol": 26,
+      "minPx": 200,
+      "size": [
+        0.34,
+        0.55
+      ],
+      "_": "The research magnifier is printed in one flat yellow used nowhere else. Three other things share the hue and each is excluded by shape rather than by colour: the bannerfish body is tall and narrow (0.3 wide by 0.5), a flag badge is larger (0.7 by 0.8), and the two depth lines run the full 22 cells across. A near-square blob of about 0.4 of a cell is a magnifier and nothing else. Twelve of the twenty icons are drawn on the colossal squid, where connectivity cannot reach them.",
+      "aspect": [
+        0.8,
+        1.25
+      ]
+    }
+  ]
+}

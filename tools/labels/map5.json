@@ -1,0 +1,122 @@
+{
+  "_": "Hand labels for Map 5 -- Ancient Waters. Adds five kinds of fossil embedded IN the rock (collected by tracing a line through stone between two enclosed squares, never by enclosing them), flares that let you drop a marker anywhere on the row or column just drawn, eels that score +6 or -3 depending on how you take them, and nautilus worth more when the shape crosses an air line.",
+  "kinds": {
+    "0": "fish",
+    "1": "fish",
+    "2": "bubbles",
+    "3": "fish",
+    "4": "flag",
+    "5": "nautilus",
+    "6": "flare",
+    "7": "stingray",
+    "8": "fossil-jelly",
+    "9": "fossil-urchin",
+    "10": "fossil-urchin",
+    "11": "fossil-urchin",
+    "12": "fossil-jelly",
+    "13": "eel",
+    "14": "nautilus",
+    "15": "nautilus",
+    "16": "fossil-ammonite",
+    "17": "fossil-ammonite",
+    "18": "fossil-bone",
+    "19": "fossil-bone",
+    "20": "flare",
+    "21": "flare",
+    "22": "fossil-star",
+    "23": "fish",
+    "24": "eel",
+    "25": "flare",
+    "26": "flag",
+    "27": "eel",
+    "28": "cuttlefish",
+    "29": "cuttlefish",
+    "30": "eel",
+    "31": "eel",
+    "32": "cuttlefish",
+    "33": "cuttlefish",
+    "34": "cuttlefish",
+    "35": "ignore",
+    "36": "eel",
+    "37": "beacon",
+    "38": "beacon",
+    "39": "beacon",
+    "40": "beacon",
+    "41": "stingray",
+    "42": "stingray",
+    "43": "fossil-star",
+    "44": "fossil-star",
+    "45": "fossil-urchin",
+    "46": "fossil-jelly",
+    "47": "fossil-jelly"
+  },
+  "kindNotes": "The five fossil types are the ammonite spiral, the urchin, the bone, the starfish and the jellyfish -- one track each on the scoring panel. 35 is a patch of bare rock texture with no fossil in it.",
+  "palette": {
+    "0": "water",
+    "1": "rock",
+    "2": "water",
+    "3": "water",
+    "4": "rock"
+  },
+  "structure": {
+    "diveMarks": [
+      9,
+      12,
+      15
+    ],
+    "tanks": [
+      12,
+      12,
+      12
+    ],
+    "turns": 24,
+    "wheel": {
+      "ticks": 24,
+      "dayTicks": [
+        0,
+        11
+      ],
+      "starts": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20
+      ]
+    },
+    "ranks": [
+      {
+        "name": "Flounderer",
+        "from": 0
+      },
+      {
+        "name": "Beginner",
+        "from": 41
+      },
+      {
+        "name": "Day tripper",
+        "from": 71
+      },
+      {
+        "name": "Master",
+        "from": 91
+      },
+      {
+        "name": "Instructor",
+        "from": 111
+      }
+    ],
+    "flagValues": {
+      "19,4": 4,
+      "13,8": 6,
+      "5,11": 8,
+      "11,16": 12,
+      "4,17": 14,
+      "20,19": 16
+    }
+  },
+  "mergeTouching": [
+    "eel"
+  ]
+}

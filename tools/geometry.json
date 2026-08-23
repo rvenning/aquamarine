@@ -1,0 +1,136 @@
+{
+  "_": "Grid geometry per gamesheet, fitted by tools/fit-geometry.js and confirmed against tools/overlay.js renders. Two blocks per map: `lowink` is pixels of the low-ink file (what the symbol extractor reads) and `colour` is pixels of the full-colour file (what the game renders). tests/grid.test.js re-fits both and fails if the detector drifts.",
+  "map1": {
+    "cols": 22,
+    "rows": 22,
+    "lowink": {
+      "sheet": {
+        "w": 1743,
+        "h": 2340
+      },
+      "cols": 22,
+      "rows": 22,
+      "x0": 127.116,
+      "y0": 168.504,
+      "pitch": 67.6742
+    },
+    "colour": {
+      "sheet": {
+        "w": 2324,
+        "h": 3120
+      },
+      "cols": 22,
+      "rows": 22,
+      "x0": 169.467,
+      "y0": 224.453,
+      "pitch": 90.2283
+    }
+  },
+  "map2": {
+    "cols": 22,
+    "rows": 21,
+    "lowink": {
+      "sheet": {
+        "w": 2324,
+        "h": 3120
+      },
+      "cols": 22,
+      "rows": 21,
+      "x0": 169.44,
+      "y0": 224.459,
+      "pitch": 90.2336
+    },
+    "colour": {
+      "sheet": {
+        "w": 2324,
+        "h": 3120
+      },
+      "cols": 22,
+      "rows": 21,
+      "x0": 169.467,
+      "y0": 224.442,
+      "pitch": 90.2292
+    }
+  },
+  "map3": {
+    "cols": 22,
+    "rows": 41,
+    "lowink": {
+      "sheet": {
+        "w": 2340,
+        "h": 3310
+      },
+      "cols": 22,
+      "rows": 41,
+      "x0": 154.72,
+      "y0": 269.014,
+      "pitch": 67.6732
+    },
+    "colour": {
+      "sheet": {
+        "w": 3120,
+        "h": 4444
+      },
+      "cols": 22,
+      "rows": 41,
+      "x0": 205.467,
+      "y0": 362.865,
+      "pitch": 89.9309
+    }
+  },
+  "map4": {
+    "cols": 22,
+    "rows": 21,
+    "lowink": {
+      "sheet": {
+        "w": 2905,
+        "h": 3900
+      },
+      "cols": 22,
+      "rows": 21,
+      "x0": 211.844,
+      "y0": 280.47,
+      "pitch": 112.7709
+    },
+    "colour": {
+      "sheet": {
+        "w": 2905,
+        "h": 3900
+      },
+      "cols": 22,
+      "rows": 21,
+      "x0": 211.844,
+      "y0": 280.47,
+      "pitch": 112.7709
+    },
+    "notes": [
+      "low-ink fit said 24x22; the sheets are the same size, so the colour fit is used for both"
+    ]
+  },
+  "map5": {
+    "cols": 22,
+    "rows": 21,
+    "lowink": {
+      "sheet": {
+        "w": 2324,
+        "h": 3120
+      },
+      "cols": 22,
+      "rows": 21,
+      "x0": 169.471,
+      "y0": 224.454,
+      "pitch": 90.2321
+    },
+    "colour": {
+      "sheet": {
+        "w": 2324,
+        "h": 3120
+      },
+      "cols": 22,
+      "rows": 21,
+      "x0": 169.467,
+      "y0": 224.442,
+      "pitch": 90.2292
+    }
+  }
+}
