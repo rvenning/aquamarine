@@ -22,6 +22,7 @@
     drag: null,         // { from, to } while dragging out a rectangle
     painted: null,      // Set of cells, for the freeform shape doubles allow
     bonuses: [],        // shipwreck bonuses circled this game
+    progress: null,     // whatever this map tracks of its own
   };
 
   /* ─────────────────────────────────────────── profiles and map choice ── */
@@ -85,16 +86,23 @@
       UI.showScreen("maps");
       return;
     }
+    await AQ.Sprites.load();
     app.rules = AQ.Maps.rulesFor(mapId);
     app.bonuses = [];
 
     const seed = GK.util.seedFrom(mapId + ":" + Date.now() + ":" + Math.random());
     const rng = GK.util.seededRand(seed);
-    app.state = AQ.State.create(app.board, rng, { rules: {} });
+    // Each map keeps its own running state -- torches, research tracks, photo
+    // powers, fossils quarried -- and hands the engine the hooks that read it.
+    app.progress = app.rules.newProgress ? app.rules.newProgress() : null;
+    const rules = app.rules.hooks ? app.rules.hooks(app.progress, app.board) : {};
+    app.state = AQ.State.create(app.board, rng, { rules });
     app.state.seed = seed;
 
+    if (app.render) app.render.stop();
     app.render = AQ.Render.create(el("aq-board"), app.board);
     app.render.resize();
+    app.render.start();
     bindBoard();
     refresh();
     UI.toast("Turn wheel enters at " + app.state.startFace);
@@ -109,10 +117,16 @@
     el("aq-phase").className = "aq-phase " + (AQ.State.isDay(s) ? "is-day" : "is-night");
     renderTanks();
     renderDice();
-    el("aq-score").textContent = app.rules.score(s, app.bonuses).total;
+    el("aq-score").textContent = app.rules.score(s, app.bonuses, app.progress).total;
 
     app.render.state.dives = s.diveCells.map((cells) => cells.slice());
     while (app.render.state.dives.length < 3) app.render.state.dives.push([]);
+    app.render.state.dive = s.dive;
+    // The diver sits on the deepest square of the shape drawn last turn, which
+    // is where the next box has to connect to.
+    app.render.state.diver = s.lastShape && s.lastShape.length
+      ? s.lastShape.reduce((a, i) => (app.board.row(i) > app.board.row(a) ? i : a), s.lastShape[0])
+      : null;
     app.render.draw();
 
     el("btn-roll").hidden = !!s.roll || s.over;
@@ -211,6 +225,7 @@
   const hint = (text) => { el("aq-hint").textContent = text; };
 
   function commit(cells) {
+    const before = AQ.Scoring.collect(app.state).caught.length;
     const result = AQ.State.place(app.state, cells, app.option);
     if (!result.ok) { UI.toast(capitalise(result.why)); return; }
     GK.Sfx.click();
@@ -219,10 +234,31 @@
     app.render.state.legal = null;
     app.render.state.preview = null;
     markSheet();
+    flourish(before);
     offerWreckBonus();
     refresh();
     if (!app.state.over) hint("Roll for the next turn");
   }
+
+  // Ring whatever this box just caught, and say what it was worth. On paper
+  // you find out at the end; here the board can tell you as it happens, which
+  // is most of the difference between a score sheet and a game.
+  function flourish(before) {
+    const { caught } = AQ.Scoring.collect(app.state);
+    for (const entry of caught.slice(before)) {
+      const cell = entry.object.cells[0];
+      const bad = entry.symbol === "jellyfish" || entry.symbol === "shark";
+      app.render.splash(cell, LABEL[entry.symbol] || "", !bad);
+    }
+    if (caught.length > before) GK.Sfx.coin();
+  }
+
+  const LABEL = {
+    fish: "shoal", jellyfish: "−2", stingray: "+5", cuttlefish: "+5",
+    "coral-purple": "+2", "coral-orange": "+2", beacon: "beacon",
+    flag: "flag", wreck: "wreck!", bubbles: "air", shark: "−3",
+    squid: "+10", penguin: "+7", vent: "vent", "glass-squid": "+5",
+  };
 
   // Draw the pencil marks the printed game asks for: a cross through anything
   // caught at the wrong time of day, a ring around each beacon so its pair is
@@ -240,6 +276,7 @@
   }
 
   function offerWreckBonus() {
+    if (!app.rules.WRECK_BONUSES || !app.rules.WRECK_BONUSES.length) return;
     const { caught } = AQ.Scoring.collect(app.state);
     const wrecks = caught.filter((e) => e.symbol === "wreck").length;
     if (wrecks <= app.bonuses.length) return;
@@ -349,7 +386,7 @@
   el("btn-rules").onclick = () => { el("aq-rules-body").innerHTML = RULES_HTML; UI.openModal("modal-rules"); };
 
   function finish() {
-    const result = app.rules.score(app.state, app.bonuses);
+    const result = app.rules.score(app.state, app.bonuses, app.progress);
     const entry = {
       at: Date.now(),
       score: result.total,
@@ -477,6 +514,11 @@
       refresh();
       return r.ok ? "surfaced" : r.why;
     });
+
+  UI.onScreenChange = (name) => {
+    if (!app.render) return;
+    if (name === "game") app.render.start(); else app.render.stop();
+  };
 
   GK.Sfx.enabled = Storage.getSettings().sound !== false;
   UI.bindSoundToggle(Storage);

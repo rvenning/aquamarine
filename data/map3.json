@@ -7,7 +7,6 @@
     "rows": 41
   },
   "sheet": {
-    "image": "assets/map3.webp",
     "source": "GAMESHEETS/MAP03/Aquamarine_Map3_FULLSCREEN.png",
     "size": {
       "w": 3120,
@@ -18,7 +17,8 @@
       "y": 0.0816527902790279,
       "cell": 0.028824006410256408,
       "cellY": 0.02023647614761476
-    }
+    },
+    "_": "Kept for provenance and for the extraction tools: which printed file this board came from, its pixel size, and where the grid sits on it. The game no longer renders the sheet -- js/render/board.js draws the sea and places sprites -- so there is no image path here any more."
   },
   "boats": [
     {
@@ -5192,11 +5192,7 @@
       "1,40": 32,
       "_": "Ten flags rather than the usual six, because the Trench sheet lets you score one flag in the upper half AND one in the trench on the same dive. The five in the trench are worth far more: 12, 16, 20, 26 and 32 against 4 to 12 above."
     },
-    "diveMarks": [
-      9,
-      12,
-      15
-    ],
+    "diveMarks": [],
     "tanks": [
       12,
       12,
@@ -5239,6 +5235,7 @@
         "name": "Instructor",
         "from": 111
       }
-    ]
+    ],
+    "diveMarksNote": "Empty on purpose. Every other sheet prints three dive-mark triangles down its right margin, and Map 1’s solo rules send you to them: each dive must pass the first or the expedition failed. The Trench prints its scoring panels in that margin instead and has no marks at all, so the solo condition it describes simply has nothing to point at here. Inventing a set -- the first attempt scaled Map 1’s to this board’s depth -- makes up a rule Postmark did not write, and made the map fail two games in three. With none, a Trench expedition is judged on its score, which is what the sheet actually asks."
   }
 }

@@ -11,10 +11,10 @@ window.AQ = window.AQ || {};
 AQ.Maps = (() => {
   const LIST = [
     { id: "map1", n: 1, name: "Exploratory Expedition", blurb: "The reef. Coral, shoals and four shipwrecks.", ready: true },
-    { id: "map2", n: 2, name: "Apex Predators", blurb: "Dark caves, research tracks, and colossal squid.", ready: false },
-    { id: "map3", n: 3, name: "1000 Fathoms Deep", blurb: "A submersible, a trench, and hydrothermal vents.", ready: false },
-    { id: "map4", n: 4, name: "The Polar Shelf", blurb: "Ice, penguins, and a camera worth carrying.", ready: false },
-    { id: "map5", n: 5, name: "Ancient Waters", blurb: "Fossils in the rock, flares, and bad-tempered eels.", ready: false },
+    { id: "map2", n: 2, name: "Apex Predators", blurb: "Dark caves, research tracks, and colossal squid.", ready: true },
+    { id: "map3", n: 3, name: "1000 Fathoms Deep", blurb: "A submersible, a trench, and hydrothermal vents.", ready: true },
+    { id: "map4", n: 4, name: "The Polar Shelf", blurb: "Ice, penguins, and a camera worth carrying.", ready: true },
+    { id: "map5", n: 5, name: "Ancient Waters", blurb: "Fossils in the rock, flares, and bad-tempered eels.", ready: true },
   ];
 
   const cache = new Map();
@@ -29,6 +29,9 @@ AQ.Maps = (() => {
     return board;
   }
 
+  // Every map has its own module. map1 is the base game and the others are
+  // written as "map1, plus", so a missing one would silently play as Map 1 --
+  // hence the explicit fallback rather than an optional chain.
   const rulesFor = (id) => AQ.Rules[id] || AQ.Rules.map1;
   const info = (id) => LIST.find((m) => m.id === id);
 

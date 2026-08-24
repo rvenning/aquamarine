@@ -37,11 +37,16 @@ function playMany(id, greedy, games) {
   const runs = [];
   for (let i = 1; i <= games; i++) {
     const rng = seededRng(i * 7919);
-    const state = AQ.State.create(board, rng, { startFace: 1 + Math.floor(rng() * 6) });
+    // Each map keeps its own running state and supplies the hooks that read
+    // it, exactly as the game does -- a bot playing Apex Predators has to be
+    // refused a night-time cave when its torches run out.
+    const progress = rules && rules.newProgress ? rules.newProgress() : null;
+    const hooks = rules && rules.hooks ? rules.hooks(progress, board) : {};
+    const state = AQ.State.create(board, rng, { startFace: 1 + Math.floor(rng() * 6), rules: hooks });
     const { illegal } = makeBot(AQ, board, { greedy }).play(state);
     const bonuses = ["stingray", "cuttlefish", "flag", "wreck"];
-    const result = rules ? rules.score(state, bonuses) : { total: 0, lines: [] };
-    runs.push({ seed: i * 7919, state, result, illegal });
+    const result = rules ? rules.score(state, bonuses, progress) : { total: 0, lines: [] };
+    runs.push({ seed: i * 7919, state, result, illegal, progress });
   }
   return runs;
 }
@@ -49,14 +54,38 @@ function playMany(id, greedy, games) {
 const scores = (runs) => runs.map((r) => r.result.total).sort((a, b) => a - b);
 const median = (xs) => xs[Math.floor(xs.length / 2)];
 
-test("a bot never makes a move the rules refuse", { skip }, () => {
-  for (const greedy of [true, false]) {
-    const runs = playMany("map1", greedy, GAMES);
-    const bad = runs.filter((r) => r.illegal);
-    assert.equal(bad.length, 0,
-      (greedy ? "greedy" : "random") + " bot made illegal moves in seeds " +
-      bad.map((r) => r.seed).join(", ") +
-      " -- legalRectangles and reject disagree");
+// Every map, not just the first. Each of the later four adds rules that can
+// refuse a placement or change what a turn costs, and a rule that is wrong in
+// one direction offers a move the engine then rejects.
+test("no bot on any map ever makes a move the rules refuse", { skip }, () => {
+  for (const id of ["map1", "map2", "map3", "map4", "map5"]) {
+    if (!hasMap(id)) continue;
+    for (const greedy of [true, false]) {
+      const runs = playMany(id, greedy, 12);
+      const bad = runs.filter((r) => r.illegal);
+      assert.equal(bad.length, 0,
+        id + " " + (greedy ? "greedy" : "random") + " bot made illegal moves in seeds " +
+        bad.map((r) => r.seed).join(", "));
+    }
+  }
+});
+
+test("every map plays to the end and scores", { skip }, () => {
+  for (const id of ["map1", "map2", "map3", "map4", "map5"]) {
+    if (!hasMap(id)) continue;
+    const runs = playMany(id, true, 8);
+    for (const r of runs) {
+      assert.ok(r.state.over, id + " seed " + r.seed + " did not finish");
+      assert.ok(Number.isFinite(r.result.total), id + " scored " + r.result.total);
+      assert.ok(r.result.lines.length >= 5, id + " scored only " + r.result.lines.length + " categories");
+      assert.ok(r.result.rank, id + " produced no rank");
+    }
+    // A map where nothing at all ever scores has a broken scoring module, and
+    // the totals alone would not show it -- Map 1 shipped exactly that way
+    // twice, with flags and wrecks unreachable.
+    const scored = new Set();
+    for (const r of runs) for (const line of r.result.lines) if (line.points !== 0) scored.add(line.key);
+    assert.ok(scored.size >= 3, id + " only ever scored: " + [...scored].join(", "));
   }
 });
 

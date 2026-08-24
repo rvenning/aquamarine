@@ -7,7 +7,6 @@
     "rows": 21
   },
   "sheet": {
-    "image": "assets/map2.webp",
     "source": "GAMESHEETS/MAP02/Aquamarine_Map2.png",
     "size": {
       "w": 2324,
@@ -18,7 +17,8 @@
       "y": 0.07193653846153847,
       "cell": 0.03882495697074011,
       "cellY": 0.028919615384615387
-    }
+    },
+    "_": "Kept for provenance and for the extraction tools: which printed file this board came from, its pixel size, and where the grid sits on it. The game no longer renders the sheet -- js/render/board.js draws the sea and places sprites -- so there is no image path here any more."
   },
   "boats": [
     {

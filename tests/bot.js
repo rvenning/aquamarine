@@ -52,6 +52,15 @@ function makeBot(AQ, board, opts) {
           case "vent": value += 6; break;
           case "glass-squid": value += 5; break;
           case "bubbles": value += 1; break;
+          case "camera": value += 4; break;
+          case "research": value += 3; break;
+          case "krill": value += 3; break;
+          case "nautilus": value += 3; break;
+          case "angler": value += 2; break;
+          case "prey": value += 1; break;
+          case "outpost": value += 9; break;
+          case "tunnel": value += 4; break;
+          case "eel": value += 4; break;
           default: break;
         }
       }
@@ -88,7 +97,15 @@ function makeBot(AQ, board, opts) {
     return value;
   }
 
-  const PRIZES = { flag: 1, wreck: 1, beacon: 1, squid: 1, outpost: 1, vent: 1, penguin: 1 };
+  // Things worth crossing the map for. Tunnels are in the list not because
+  // they score -- they score nothing -- but because on the Trench sheet they
+  // are the only way into the lower half, where the flags are worth 16 to 32
+  // instead of 4 to 12. Without them the bot never went down there and half
+  // that map went untested.
+  const PRIZES = {
+    flag: 1, wreck: 1, beacon: 1, squid: 1, outpost: 1, vent: 1,
+    penguin: 1, tunnel: 1, camera: 1, research: 1, station: 1,
+  };
 
   function nearestPrize(state, cells) {
     let best = null;

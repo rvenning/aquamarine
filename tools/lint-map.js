@@ -153,8 +153,11 @@ function lintMap(id) {
     for (const cell of flagCells) if (!valued.has(cell)) problems.push(`the flag at ${cell} has no value`);
     for (const cell of valued) if (!flagCells.has(cell)) problems.push(`a flag value is recorded at ${cell}, where there is no flag`);
 
+    // The Trench is the exception: its right margin carries the scoring panels
+    // rather than the three dive-mark triangles, so it has none to record.
     const marks = st.diveMarks || [];
-    if (marks.length !== 3) problems.push(`expected 3 dive marks, found ${marks.length}`);
+    if (marks.length !== 3 && id !== "map3")
+      problems.push(`expected 3 dive marks, found ${marks.length}`);
     for (let i = 1; i < marks.length; i++)
       if (marks[i] <= marks[i - 1]) problems.push("dive marks are not in increasing depth order: " + marks.join(", "));
     for (const m of marks)

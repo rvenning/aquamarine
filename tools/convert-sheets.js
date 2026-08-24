@@ -13,6 +13,12 @@
 // and cached from then on, so installing the game costs a few hundred
 // kilobytes rather than thirty megabytes.
 //
+// NOT part of the build any more. The game drew the printed sheet as its board
+// until it became clear that a photograph of a piece of paper plays like one;
+// the board is now rendered from sprites (tools/sprites.js) and these files are
+// no longer shipped. Kept because it is the quickest way to get a look at a
+// whole sheet, and because the sprite cutter still reads the colour artwork.
+//
 //   node tools/convert-sheets.js [--quality 88]
 
 const fs = require("fs");

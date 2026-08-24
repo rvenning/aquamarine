@@ -20,8 +20,17 @@ enclosing that many squares of the ocean. Whatever you enclose is discovered,
 and scores. Taking the bigger die costs air; going deeper costs more air every
 turn; you get three dives and three tanks, and twenty-four turns to spend them.
 
-The board is the printed gamesheet — the real artwork, at full resolution, with
-your dive drawn over it. What the computer takes over is the bookkeeping:
+**All five maps play**, each with its own rules: caves and research tracks on
+Apex Predators, a submersible and a trench on 1000 Fathoms Deep, ice and a
+photo track on The Polar Shelf, and fossils quarried through the rock on
+Ancient Waters.
+
+The board is **drawn, not photographed**. The artwork is Postmark's — the same
+fish, the same coral, cut out as sprites — but the sea they swim in is
+rendered: a depth gradient from bright surface teal down to near-black, light
+falling through the surface, motes drifting in it, and every creature idling on
+its own clock. Rock is built as a mass rather than a grid of squares, so a
+shelf reads as a shelf. What the computer takes over is the bookkeeping:
 
 - **Legal placements are shown before you draw.** On paper you police the rules
   yourself, and the one everybody gets wrong is that a new dive may not touch an
@@ -37,6 +46,28 @@ your dive drawn over it. What the computer takes over is the bookkeeping:
 Solo rules are enforced as printed: all three dives must get below the first
 mark on the right or the expedition failed, whatever you scored. The second and
 third marks are silver and gold.
+
+## The sprites
+
+`tools/sprites.js` builds the ~50 sprites the board draws with, from two
+sources. Postmark ship a MAP MAKER ASSETS folder of the real artwork — high
+resolution, transparent, one file per symbol — which covers Maps 1 and 2. Maps
+3 to 5 have no supplied art at all, so their angler fish, vents, penguins, eels
+and fossils are **cut from the colour gamesheets**, which is only possible
+because the extraction pipeline already knows exactly which squares each symbol
+occupies.
+
+A cut takes its **shape from the low-ink printing** and its **colour from the
+colour one**. Keying the colour art alone was tried twice and does not work:
+the terrain palette removes almost nothing, because a crop holds the painted
+variation of the water plus the white aiming cross printed at every grid
+corner, and neither is a palette entry — every sprite came out an opaque
+square. Learning the background from the crop's own border does better on
+bright symbols and destroys dark ones: a navy penguin sits close enough to teal
+water that the flood eats straight through it, and half the set came back as
+outlines with the middles missing. The low-ink sheet is the same artwork as
+solid black on white, which is already an alpha mask — no threshold to tune,
+and a silhouette correct by construction.
 
 ## How the maps got here
 
@@ -101,7 +132,7 @@ expedition. Progress writes are suppressed while it is on.
     js/engine/rules/   one module per map; map1 is the base game
     js/render/     drawing the sheet
     data/          extracted boards, one per map
-    assets/        the gamesheets as WebP (22.8MB of PNG becomes 3.0MB)
+    assets/sprites/ the ~50 symbol sprites the board is drawn from (424KB)
     tools/         the extraction pipeline and its labels
     lib/           vendored gamekit
 
@@ -109,7 +140,14 @@ Built on [gamekit](../gamekit), the shared library behind the family's games.
 
 ## Status
 
-Map 1 (Exploratory Expedition) is playable. Maps 2 to 5 are extracted, linted
-and waiting on their rules modules — caves and research tracks, the Trench and
-its energy budget, ice and the photo track, and fossils quarried out of the
-rock.
+All five maps are playable, extracted and linted. Two things are worth knowing:
+
+- **The Trench has no dive marks.** Every other sheet prints three triangles
+  down its right margin, and Map 1's solo rules send you to them: each dive
+  must pass the first or the expedition failed. Map 3 puts its scoring panels
+  in that margin instead and prints no marks at all. Scaling Map 1's to this
+  board's depth was tried, and it invents a rule Postmark did not write — it
+  also failed two games in three. Trench expeditions are judged on score alone.
+- **Map 3's outpost bonuses are taken automatically** as the engine meets them.
+  The printed game lets you choose one of a pair each time, which wants a
+  dialogue like the shipwreck bonuses on Map 1.

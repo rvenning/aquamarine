@@ -113,6 +113,12 @@ AQ.State = (() => {
       previousDives: s.previousDives,
     });
     if (why) return { ok: false, why };
+    // A map may forbid a placement the core rules allow -- Apex Predators will
+    // not let you into a cave at night without a torch.
+    if (s.rules.canPlace) {
+      const blocked = s.rules.canPlace(s, cells, option);
+      if (blocked) return { ok: false, why: blocked };
+    }
 
     const cost = costOf(s, cells, option);
     for (const i of cells) { s.occupied.add(i); s.diveCells[s.dive].push(i); }

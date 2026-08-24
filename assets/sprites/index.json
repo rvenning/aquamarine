@@ -1,0 +1,242 @@
+{
+  "fish": {
+    "w": 485,
+    "h": 334,
+    "from": "supplied"
+  },
+  "fish-banner": {
+    "w": 485,
+    "h": 463,
+    "from": "supplied"
+  },
+  "jellyfish": {
+    "w": 420,
+    "h": 462,
+    "from": "supplied"
+  },
+  "coral-purple": {
+    "w": 410,
+    "h": 454,
+    "from": "supplied"
+  },
+  "coral-orange": {
+    "w": 410,
+    "h": 453,
+    "from": "supplied"
+  },
+  "stingray": {
+    "w": 506,
+    "h": 505,
+    "from": "supplied"
+  },
+  "cuttlefish": {
+    "w": 507,
+    "h": 492,
+    "from": "supplied"
+  },
+  "beacon": {
+    "w": 467,
+    "h": 530,
+    "from": "supplied"
+  },
+  "bubbles": {
+    "w": 366,
+    "h": 378,
+    "from": "supplied"
+  },
+  "flag": {
+    "w": 426,
+    "h": 1028,
+    "from": "supplied"
+  },
+  "shark": {
+    "w": 1018,
+    "h": 509,
+    "from": "supplied"
+  },
+  "wreck1": {
+    "w": 1122,
+    "h": 1139,
+    "from": "supplied"
+  },
+  "wreck2": {
+    "w": 576,
+    "h": 1684,
+    "from": "supplied"
+  },
+  "wreck3": {
+    "w": 544,
+    "h": 1113,
+    "from": "supplied"
+  },
+  "wreck4": {
+    "w": 1627,
+    "h": 1116,
+    "from": "supplied"
+  },
+  "squid1": {
+    "w": 383,
+    "h": 394,
+    "from": "supplied"
+  },
+  "squid2": {
+    "w": 387,
+    "h": 523,
+    "from": "supplied"
+  },
+  "squid3": {
+    "w": 651,
+    "h": 389,
+    "from": "supplied"
+  },
+  "boat": {
+    "w": 2377,
+    "h": 1440,
+    "from": "supplied"
+  },
+  "weed": {
+    "w": 267,
+    "h": 433,
+    "from": "supplied"
+  },
+  "rock": {
+    "w": 870,
+    "h": 715,
+    "from": "supplied"
+  },
+  "wall1": {
+    "w": 500,
+    "h": 500,
+    "from": "supplied"
+  },
+  "wall2": {
+    "w": 500,
+    "h": 500,
+    "from": "supplied"
+  },
+  "wall3": {
+    "w": 500,
+    "h": 500,
+    "from": "supplied"
+  },
+  "wall4": {
+    "w": 500,
+    "h": 500,
+    "from": "supplied"
+  },
+  "wall5": {
+    "w": 500,
+    "h": 500,
+    "from": "supplied"
+  },
+  "cave1": {
+    "w": 586,
+    "h": 587,
+    "from": "supplied"
+  },
+  "cave2": {
+    "w": 1150,
+    "h": 586,
+    "from": "supplied"
+  },
+  "cave3": {
+    "w": 1714,
+    "h": 585,
+    "from": "supplied"
+  },
+  "angler": {
+    "w": 102,
+    "h": 87,
+    "from": "cut:map3"
+  },
+  "prey": {
+    "w": 69,
+    "h": 72,
+    "from": "cut:map3"
+  },
+  "glass-squid": {
+    "w": 85,
+    "h": 85,
+    "from": "cut:map3"
+  },
+  "vent": {
+    "w": 83,
+    "h": 59,
+    "from": "cut:map3"
+  },
+  "outpost": {
+    "w": 207,
+    "h": 372,
+    "from": "cut:map3"
+  },
+  "tunnel": {
+    "w": 73,
+    "h": 73,
+    "from": "cut:map3"
+  },
+  "cable": {
+    "w": 25,
+    "h": 41,
+    "from": "cut:map3"
+  },
+  "station": {
+    "w": 61,
+    "h": 91,
+    "from": "cut:map3"
+  },
+  "penguin": {
+    "w": 94,
+    "h": 202,
+    "from": "cut:map4"
+  },
+  "krill": {
+    "w": 75,
+    "h": 54,
+    "from": "cut:map4"
+  },
+  "camera": {
+    "w": 72,
+    "h": 72,
+    "from": "cut:map4"
+  },
+  "eel": {
+    "w": 343,
+    "h": 42,
+    "from": "cut:map5"
+  },
+  "nautilus": {
+    "w": 85,
+    "h": 76,
+    "from": "cut:map5"
+  },
+  "flare": {
+    "w": 56,
+    "h": 57,
+    "from": "cut:map5"
+  },
+  "fossil-ammonite": {
+    "w": 57,
+    "h": 64,
+    "from": "cut:map5"
+  },
+  "fossil-urchin": {
+    "w": 90,
+    "h": 80,
+    "from": "cut:map5"
+  },
+  "fossil-bone": {
+    "w": 68,
+    "h": 67,
+    "from": "cut:map5"
+  },
+  "fossil-star": {
+    "w": 69,
+    "h": 64,
+    "from": "cut:map5"
+  },
+  "fossil-jelly": {
+    "w": 41,
+    "h": 55,
+    "from": "cut:map5"
+  }
+}
