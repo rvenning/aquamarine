@@ -10,7 +10,7 @@
 // map's artwork is cached the first time it is dived and available offline
 // from then on.
 
-const CACHE = "aquamarine-v2";
+const CACHE = "aquamarine-v3";
 
 const SHELL = [
   "./",
@@ -37,6 +37,7 @@ const SHELL = [
   "js/engine/rules/map3.js",
   "js/engine/rules/map4.js",
   "js/engine/rules/map5.js",
+  "js/icons.js",
   "js/help.js",
   "js/tutorial.js",
   "js/render/sprites.js",

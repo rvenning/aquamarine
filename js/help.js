@@ -32,92 +32,101 @@ AQ.Help = (() => {
       name: "Exploratory Expedition",
       adds: [],
       scoring: [
-        ["Butterfly fish", "1 / 3 / 6 / 10 / 15 for a shoal of 1 to 5 <b>in one box</b>"],
-        ["Coral", "2 each — but only if a box holds a <b>single colour</b>. Catch both and every coral in that box is crossed out."],
-        ["Jellyfish", "−2 each"],
-        ["Stingrays", "5 each, <b>daylight only</b>"],
-        ["Cuttlefish", "5 each, <b>night only</b>"],
-        ["Beacons", "15 a pair — one found by day, one by night"],
-        ["Flags", "the printed value, best <b>one per dive</b>"],
-        ["Shipwrecks", "explore every square of one and circle a bonus, scored at the end"],
+        ["Butterfly fish", "1 / 3 / 6 / 10 / 15 for a shoal of 1 to 5 <b>in one box</b>", "fish"],
+        ["Coral", "2 each — but only if a box holds a <b>single colour</b>. Catch both and every coral in that box is crossed out.", "coral"],
+        ["Jellyfish", "−2 each", "jellyfish"],
+        ["Stingrays", "5 each, <b>daylight only</b>", "stingray"],
+        ["Cuttlefish", "5 each, <b>night only</b>", "cuttlefish"],
+        ["Beacons", "15 a pair — one found by day, one by night", "beacon"],
+        ["Flags", "the printed value, best <b>one per dive</b>", "flag"],
+        ["Shipwrecks", "explore every square of one and circle a bonus, scored at the end", "wreck"],
       ],
     },
     map2: {
       name: "Apex Predators",
       adds: [
-        ["Dark caves", "A box covering a shaded cave square needs daylight, or one of your <b>three torches</b>. At night with no torch left, the caves are shut."],
-        ["Research", "Every research icon you enclose crosses off a space on a track. Some spaces hand back a breath, a torch, or a free extra move."],
+        ["Dark caves", "A box covering a shaded cave square needs daylight, or one of your <b>three torches</b>. At night with no torch left, the caves are shut.", "cave"],
+        ["Research", "Every research icon you enclose crosses off a space on a track. Some spaces hand back a breath, a torch, or a free extra move.", "research"],
       ],
       scoring: [
-        ["Banner fish", "1 / 3 / 6 / 10 / 15 for a shoal of 1 to 5 in one box"],
-        ["Colossal squid", "10 each, and only when <b>every</b> square of it is enclosed (they are 7, 8 and 11 squares)"],
-        ["Sharks", "−3 each"],
-        ["Stingrays", "5 each, daylight only"],
-        ["Cuttlefish", "5 each, night only"],
-        ["Beacons", "15 a pair, one by day and one by night"],
-        ["Flags", "the printed value, best one per dive"],
-        ["Research", "1 a space, plus 3, 5 or 7 for finishing a track"],
+        ["Banner fish", "1 / 3 / 6 / 10 / 15 for a shoal of 1 to 5 in one box", "fish"],
+        ["Colossal squid", "10 each, and only when <b>every</b> square of it is enclosed (they are 7, 8 and 11 squares)", "squid"],
+        ["Sharks", "−3 each", "shark"],
+        ["Stingrays", "5 each, daylight only", "stingray"],
+        ["Cuttlefish", "5 each, night only", "cuttlefish"],
+        ["Beacons", "15 a pair, one by day and one by night", "beacon"],
+        ["Flags", "the printed value, best one per dive", "flag"],
+        ["Research", "1 a space, plus 3, 5 or 7 for finishing a track", "research"],
       ],
     },
     map3: {
       name: "1000 Fathoms Deep",
       adds: [
-        ["A submersible", "Air is energy. Alongside the low and high die you may take the <b>sum of both</b> and pay the higher one — the only way to draw a nine."],
-        ["Power cables", "Touch one and the turn is free, exactly like an air bubble."],
-        ["The Trench", "You cannot reach the lower map directly. Enclose a tunnel, and from the next turn you may carry on from any square along the Trench's top row."],
-        ["Vents", "Steam costs a point of energy for every square of it you cross — and vents are worth more the more of them you find."],
-        ["Outposts", "Enclose all eight squares of a research outpost and claim one of a pair of bonuses; the other is struck out for the rest of the game."],
+        ["A submersible", "Air is energy. Alongside the low and high die you may take the <b>sum of both</b> and pay the higher one — the only way to draw a nine.", "boat"],
+        ["Power cables", "Touch one and the turn is free, exactly like an air bubble.", "cable"],
+        ["The Trench", "You cannot reach the lower map directly. Enclose a tunnel, and from the next turn you may carry on from any square along the Trench's top row.", "tunnel"],
+        ["Vents", "Steam costs a point of energy for every square of it you cross — and vents are worth more the more of them you find.", "vent"],
+        ["Outposts", "Enclose all eight squares of a research outpost and claim one of a pair of bonuses; the other is struck out for the rest of the game.", "outpost"],
       ],
       scoring: [
-        ["Glass squid", "5 each — in the <b>upper map by day</b>, in the <b>Trench by night</b>. Wrong half, wrong hour, nothing."],
-        ["Jellyfish", "−2 each"],
-        ["Surgeonfish", "1 / 3 / 6 / 10 / 15 / 21 for a shoal of 1 to 6 in one box"],
-        ["Angler fish", "2 for every prey caught in the same box as one"],
-        ["Vents", "1 / 4 / 9 / 16 / 25 / 36 / 49 for 1 to 7 of the seven on the sheet"],
-        ["Flags", "the printed value — <b>two per dive</b> here, one in each half"],
-        ["Outposts", "whatever the bonuses you claimed are worth"],
+        ["Glass squid", "5 each — in the <b>upper map by day</b>, in the <b>Trench by night</b>. Wrong half, wrong hour, nothing.", "glass-squid"],
+        ["Jellyfish", "−2 each", "jellyfish"],
+        ["Surgeonfish", "1 / 3 / 6 / 10 / 15 / 21 for a shoal of 1 to 6 in one box", "fish"],
+        ["Angler fish", "2 for every prey caught in the same box as one", "angler"],
+        ["Vents", "1 / 4 / 9 / 16 / 25 / 36 / 49 for 1 to 7 of the seven on the sheet", "vent"],
+        ["Flags", "the printed value — <b>two per dive</b> here, one in each half", "flag"],
+        ["Outposts", "whatever the bonuses you claimed are worth", "outpost"],
       ],
       note: "This sheet prints no dive marks — its right margin carries the scoring panels instead — so a Trench expedition is judged on score alone.",
     },
     map4: {
       name: "The Polar Shelf",
       adds: [
-        ["Ice", "Ice blocks a box exactly as rock does, and costs <b>one extra air</b> whenever the box you draw is orthogonally beside any of it."],
-        ["Photographs", "Every camera enclosed fills the next space on the photo track. The track is totalled <b>after each dive</b>, so a picture taken early counts three times over."],
-        ["Powers", "Three spaces on that track unlock a permanent power: +1 to the lower die, +1 to any die beside ice, or one more shape after a tank empties."],
+        ["Ice", "Ice blocks a box exactly as rock does, and costs <b>one extra air</b> whenever the box you draw is orthogonally beside any of it.", "rock"],
+        ["Photographs", "Every camera enclosed fills the next space on the photo track. The track is totalled <b>after each dive</b>, so a picture taken early counts three times over.", "camera"],
+        ["Powers", "Three spaces on that track unlock a permanent power: +1 to the lower die, +1 to any die beside ice, or one more shape after a tank empties.", "camera"],
       ],
       scoring: [
-        ["Bluenose fish", "1 / 3 / 6 / 10 / 15 for a shoal of 1 to 5 in one box"],
-        ["Penguins", "7 each — both squares in <b>one box</b>, and no air bubble in it"],
-        ["Krill", "2 for every other icon caught in the same box. Only one krill in a box scores."],
-        ["Stingrays", "5 each, daylight only"],
-        ["Cuttlefish", "5 each, night only"],
-        ["Beacons", "15 a pair, one by day and one by night"],
-        ["Flags", "the printed value, best one per dive"],
-        ["Photographs", "the track total, added up after every dive"],
+        ["Bluenose fish", "1 / 3 / 6 / 10 / 15 for a shoal of 1 to 5 in one box", "fish"],
+        ["Penguins", "7 each — both squares in <b>one box</b>, and no air bubble in it", "penguin"],
+        ["Krill", "2 for every other icon caught in the same box. Only one krill in a box scores.", "krill"],
+        ["Stingrays", "5 each, daylight only", "stingray"],
+        ["Cuttlefish", "5 each, night only", "cuttlefish"],
+        ["Beacons", "15 a pair, one by day and one by night", "beacon"],
+        ["Flags", "the printed value, best one per dive", "flag"],
+        ["Photographs", "the track total, added up after every dive", "camera"],
       ],
     },
     map5: {
       name: "Ancient Waters",
       adds: [
-        ["Fossils", "Fossils are <b>inside the rock</b> and are never enclosed. At the end of a turn, sight along a straight line — orthogonal or diagonal — between two squares you have explored. If that line passes only through stone, every fossil on it is collected."],
-        ["Flares", "Enclose a flare and drop a marker anywhere on the rows or columns of the box you just drew. It counts as a one-square shape for sighting."],
+        ["Fossils", "Fossils are <b>inside the rock</b> and are never enclosed. At the end of a turn, sight along a straight line — orthogonal or diagonal — between two squares you have explored. If that line passes only through stone, every fossil on it is collected.", "fossil"],
+        ["Flares", "Enclose a flare and drop a marker anywhere on the rows or columns of the box you just drew. It counts as a one-square shape for sighting.", "flare"],
       ],
       scoring: [
-        ["Prehistoric fish", "1 / 3 / 6 / 10 / 15 for a shoal of 1 to 5 in one box"],
-        ["Eels", "+6 if you finish one across <b>two or more</b> boxes; −3 if you take it in a single box, or leave it half done"],
-        ["Nautilus", "2 each, and 2 more if the box crosses an air line"],
-        ["Stingrays", "5 each, daylight only"],
-        ["Cuttlefish", "5 each, night only"],
-        ["Beacons", "15 a pair, one by day and one by night"],
-        ["Flags", "the printed value, best one per dive"],
-        ["Fossils", "each track pays more the further along it you get"],
+        ["Prehistoric fish", "1 / 3 / 6 / 10 / 15 for a shoal of 1 to 5 in one box", "fish"],
+        ["Eels", "+6 if you finish one across <b>two or more</b> boxes; −3 if you take it in a single box, or leave it half done", "eel"],
+        ["Nautilus", "2 each, and 2 more if the box crosses an air line", "nautilus"],
+        ["Stingrays", "5 each, daylight only", "stingray"],
+        ["Cuttlefish", "5 each, night only", "cuttlefish"],
+        ["Beacons", "15 a pair, one by day and one by night", "beacon"],
+        ["Flags", "the printed value, best one per dive", "flag"],
+        ["Fossils", "each track pays more the further along it you get", "fossil"],
       ],
     },
   };
 
-  const rows = (list) => list.map(([term, text]) =>
-    "<tr><th>" + term + "</th><td>" + text + "</td></tr>").join("");
+  // A scoring panel that names creatures should show them. On the printed sheet
+  // the panel down the side has the picture beside every line, and a player
+  // halfway down an unfamiliar map is trying to match what they can see on the
+  // board to what the table says it is worth -- which is a job for the picture,
+  // not for the words "glass squid".
+  //
+  // Rows carrying no key are rules rather than creatures ("Doubles", "Air"), and
+  // get an empty cell so the text still lines up with the rows that do.
+  const rows = (list, mapId) => list.map(([term, text, key]) =>
+    '<tr><td class="aq-help-icon">' + (key ? AQ.Icons.img(key, mapId, "aq-help-pic") : "") + "</td>" +
+    "<th>" + term + "</th><td>" + text + "</td></tr>").join("");
 
   function html(mapId, board) {
     const map = MAPS[mapId] || MAPS.map1;
@@ -125,12 +134,12 @@ AQ.Help = (() => {
     return [
       '<h3>' + map.name + "</h3>",
       map.adds.length
-        ? '<h4>What this map adds</h4><table class="aq-help">' + rows(map.adds) + "</table>"
+        ? '<h4>What this map adds</h4><table class="aq-help">' + rows(map.adds, mapId) + "</table>"
         : '<p class="aq-help-lead">The base game, and the sheet every other map is written against.</p>',
-      '<h4>Scoring</h4><table class="aq-help">' + rows(map.scoring) + "</table>",
+      '<h4>Scoring</h4><table class="aq-help">' + rows(map.scoring, mapId) + "</table>",
       '<h4>Playing solo</h4><p>' + (soloApplies ? SOLO : map.note || SOLO) + "</p>",
       '<p class="aq-help-ranks">' + RANKS + "</p>",
-      '<h4>The rules in full</h4><table class="aq-help">' + rows(BASE) + "</table>",
+      '<h4>The rules in full</h4><table class="aq-help">' + rows(BASE, mapId) + "</table>",
       '<p class="aq-modal-credit">Aquamarine is a print-and-play game by Postmark Games, designed by Matthew Dunstan and Rory Muldoon.</p>',
       '<button class="btn btn-grey" data-close="modal-help">Close</button>',
     ].join("");

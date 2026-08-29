@@ -26,6 +26,7 @@
     wheel: null,        // the day/night turn track
     undo: null,         // snapshot of the state before the last box
     canUndo: false,
+    awaitingBonus: false, // the wreck chooser is open and the game must wait
     coach: null,        // the tutorial, when one is running
     teaching: false,    // this game IS the tutorial, coach dismissed or not
   };
@@ -123,6 +124,7 @@
     app.wheel.resize();
     app.canUndo = false;
     app.undo = null;
+    app.awaitingBonus = false;
     bindBoard();
     refresh();
     if (teaching) {
@@ -153,6 +155,7 @@
     });
     renderTanks();
     renderDice();
+    renderBonuses();
     el("aq-score").textContent = app.rules.score(s, app.bonuses, app.progress).total;
 
     app.render.state.dives = s.diveCells.map((cells) => cells.slice());
@@ -174,7 +177,11 @@
     el("btn-surface").hidden = !s.roll || !s.diveCells[s.dive].length
       || s.dive >= AQ.State.DIVES - 1 || (coach && !coach.canSurface());
     el("btn-undo").hidden = !app.canUndo || s.over || !!coach;
-    if (s.over) finish();
+    // Finishing a shipwreck on the LAST turn opens the bonus chooser at the same
+    // moment the game ends. Scoring straight through would leave the chooser
+    // floating over the result sheet and the bonus you then picked worth nothing
+    // -- it was already counted, without it. So the ending waits for the answer.
+    if (s.over && !app.awaitingBonus) finish();
   }
 
   // Air, crossed off the way a pencil would.
@@ -473,11 +480,96 @@
     app.render.state.marks = marks;
   }
 
+  /* ────────────────────────────────────────────────────────────── bonuses ── */
+
+  // The two maps that hand out bonuses do it differently -- Map 1 has six
+  // shipwreck bonuses and you take one each time you finish a wreck; the Trench
+  // has twelve in six pairs, and claiming one strikes its partner out for the
+  // rest of the game. Both come through here as the same list, so the tracker,
+  // the chooser and the modal are written once.
+  //
+  //   claimed  yours, and scoring
+  //   open     still there to be taken
+  //   struck   gone: you took its partner instead
+  function bonusList() {
+    const rules = app.rules;
+    if (rules.WRECK_BONUSES && rules.WRECK_BONUSES.length) {
+      const taken = new Set(app.bonuses);
+      return {
+        title: "Shipwreck bonuses",
+        items: rules.WRECK_BONUSES.map((b) => ({
+          id: b.id, label: b.label, symbol: b.symbol,
+          state: taken.has(b.id) ? "claimed" : "open",
+        })),
+      };
+    }
+    if (rules.BONUS_PAIRS && rules.BONUS_PAIRS.length) {
+      const p = app.progress || { bonuses: [], struck: [] };
+      const taken = new Set(p.bonuses || []);
+      const struck = new Set(p.struck || []);
+      return {
+        title: "Station bonuses",
+        paired: true,
+        items: rules.BONUS_PAIRS.flat().map((b) => ({
+          id: b.id, label: b.label, symbol: b.symbol || (b.kind === "power" ? "outpost" : null),
+          state: taken.has(b.id) ? "claimed" : struck.has(b.id) ? "struck" : "open",
+        })),
+      };
+    }
+    return null;
+  }
+
+  // The strip in the HUD: what you have and what is still out there, at a
+  // glance. On paper the six bonuses are printed beside the board with the ones
+  // you have taken circled, so there is never a moment where you have to
+  // remember which you already spent.
+  function renderBonuses() {
+    const wrap = el("aq-bonuses");
+    const list = bonusList();
+    if (!list) { wrap.hidden = true; return; }
+    wrap.hidden = false;
+    const claimed = list.items.filter((b) => b.state === "claimed").length;
+    el("aq-bonus-count").textContent = claimed + " / " + list.items.length;
+    el("aq-bonus-title").textContent = list.title;
+    el("aq-bonus-strip").innerHTML = list.items.map((b) =>
+      '<span class="aq-chip is-' + b.state + '" title="' + b.label +
+      (b.state === "claimed" ? " — claimed" : b.state === "struck" ? " — gone" : " — not yet") + '">' +
+      (AQ.Icons.img(b.symbol, app.mapId, "aq-chip-pic") || '<i class="aq-chip-dot"></i>') +
+      "</span>").join("");
+  }
+
+  // The same list in full, with the words -- because the strip can only show
+  // the picture, and "5 per flag reached" is not something a flag conveys.
+  function showBonusSheet() {
+    const list = bonusList();
+    if (!list) return;
+    const rows = list.items.map((b) =>
+      '<li class="aq-bonus-row is-' + b.state + '">' +
+      '<span class="aq-bonus-icon">' + AQ.Icons.img(b.symbol, app.mapId, "aq-bonus-pic") + "</span>" +
+      "<span>" + b.label + "</span>" +
+      '<em>' + (b.state === "claimed" ? "claimed" : b.state === "struck" ? "gone" : "—") + "</em>" +
+      "</li>").join("");
+    el("aq-bonus-sheet-body").innerHTML =
+      "<h3>" + list.title + "</h3>" +
+      '<p class="aq-modal-sub">' +
+        (list.paired
+          ? "Twelve in six pairs. Claiming one strikes its partner out for the rest of the game."
+          : "One for every shipwreck you explore completely. Each may be taken once.") +
+      "</p>" +
+      '<ul class="aq-bonus-rows">' + rows + "</ul>" +
+      '<button class="btn btn-grey" data-close="modal-bonus-sheet">Close</button>';
+    UI.openModal("modal-bonus-sheet");
+  }
+
   function offerWreckBonus() {
     if (!app.rules.WRECK_BONUSES || !app.rules.WRECK_BONUSES.length) return;
     const { caught } = AQ.Scoring.collect(app.state);
     const wrecks = caught.filter((e) => e.symbol === "wreck").length;
     if (wrecks <= app.bonuses.length) return;
+    showBonusChooser();
+  }
+
+  function showBonusChooser() {
     const taken = new Set(app.bonuses);
     const list = el("aq-bonus-list");
     list.innerHTML = "";
@@ -485,15 +577,40 @@
       const button = document.createElement("button");
       button.className = "aq-bonus";
       button.disabled = taken.has(bonus.id);
-      button.textContent = bonus.label;
+      // The picture of the thing being paid for. Six lines of "5 per X" read as
+      // one grey block otherwise, and the choice is worth more thought than that
+      // -- it is the difference between a bonus that pays and one that does not.
+      button.innerHTML =
+        '<span class="aq-bonus-icon">' + AQ.Icons.img(bonus.symbol, app.mapId, "aq-bonus-pic") + "</span>" +
+        "<span>" + bonus.label + "</span>" +
+        '<em>' + (taken.has(bonus.id) ? "taken" : "worth " + bonusWorth(bonus) + " now") + "</em>";
       button.onclick = () => {
         app.bonuses.push(bonus.id);
+        app.awaitingBonus = false;
         UI.closeModal("modal-bonus");
         refresh();
       };
       list.appendChild(button);
     }
+    app.awaitingBonus = true;
     UI.openModal("modal-bonus");
+  }
+
+  // What a bonus would be worth if you took it right now.
+  //
+  // Asked by scoring the game twice -- once as it stands, once with this bonus
+  // added -- and taking the difference, rather than counting the creatures here.
+  // Several of them do not pay per creature caught: "1 per coral" pays only for
+  // coral in single-colour boxes, and the beacon bonus pays per PAIR. A count
+  // reimplemented in the interface would quietly disagree with the sheet, and
+  // the player would find out at the end.
+  function bonusWorth(bonus) {
+    const at = (chosen) => {
+      const line = app.rules.score(app.state, chosen, app.progress).lines
+        .find((l) => l.key === "wreck" || l.key === "outpost");
+      return line ? line.points : 0;
+    };
+    return at(app.bonuses.concat(bonus.id)) - at(app.bonuses);
   }
 
   /* ──────────────────────────────────────────────────── board handling ── */
@@ -621,32 +738,14 @@
   // sheets add is written against Map 1's rules, so it is the only one worth
   // teaching on.
   el("btn-tutorial").onclick = () => startGame("map1", true);
+  el("aq-bonuses").onclick = () => { GK.Sfx.click(); showBonusSheet(); };
 
   el("btn-again").onclick = () => startGame(app.mapId);
   el("btn-logbook").onclick = () => { renderLogbook(); UI.showScreen("logbook"); };
+  // Straight from the result sheet to where that score sits against everyone
+  // else's, on the map just played rather than whatever was open last.
+  el("btn-result-scores").onclick = () => { renderLogbook(app.mapId); UI.showScreen("logbook"); };
   el("btn-rules").onclick = () => { el("aq-rules-body").innerHTML = RULES_HTML; UI.openModal("modal-rules"); };
-
-  // Which sprite stands for a scoring category. The result sheet is a list of
-  // creatures, and a list of creatures should have the creatures on it -- a
-  // player who has just finished a dive wants to see what they caught, not
-  // read a table of category names.
-  const SCORE_ICON = {
-    fish: "fish", coral: "coral-orange", jellyfish: "jellyfish",
-    stingray: "stingray", cuttlefish: "cuttlefish", beacon: "beacon",
-    flag: "flag", wreck: "wreck1", shark: "shark", squid: "squid1",
-    research: "research", camera: "camera", krill: "krill", penguin: "penguin",
-    vent: "vent", "glass-squid": "glass-squid", angler: "angler",
-    eel: "eel", nautilus: "nautilus", fossil: "fossil-ammonite",
-    outpost: "outpost", prey: "prey",
-  };
-
-  // Map 2's shoals are banner fish and Map 3's are surgeonfish; the sprite
-  // should be the one actually printed on the sheet being played.
-  function iconFor(key, mapId) {
-    if (key === "fish" && mapId === "map2") return "fish-banner";
-    if (key === "fish" && mapId === "map3") return "prey";
-    return SCORE_ICON[key];
-  }
 
   function finish() {
     const result = app.rules.score(app.state, app.bonuses, app.progress);
@@ -676,11 +775,11 @@
   function resultHtml(result, isBest) {
     const medal = result.solo.medal;
     const rows = result.lines.map((line) => {
-      const icon = iconFor(line.key, app.mapId);
+      const icon = AQ.Icons.img(line.key, app.mapId, "");
       const sign = line.points > 0 ? "is-plus" : line.points < 0 ? "is-minus" : "is-zero";
       return '<li class="aq-row ' + sign + '">' +
         '<span class="aq-row-icon">' +
-          (icon ? '<img src="assets/sprites/' + icon + '.webp" alt="">' : "") +
+          icon +
         "</span>" +
         '<span class="aq-row-body"><strong>' + line.label + "</strong>" +
         '<em>' + (line.detail || "") + "</em></span>" +
@@ -727,35 +826,76 @@
     return "Expedition complete";
   }
 
-  function renderLogbook() {
+  /* ────────────────────────────────────────────────────────── the logbook ── */
+
+  // One map at a time.
+  //
+  // The logbook used to stack all five maps down a single page, which answered
+  // "how am I doing" for nobody: the five sheets score completely differently --
+  // a 70 on the Trench is not a 70 on the reef -- so the only comparison worth
+  // making is between divers on the SAME map, and it was the one thing you had
+  // to scroll to find. Now the map is chosen first and the page is that map's:
+  // the family's table, then your own dives on it.
+  let logbookMap = null;
+
+  function renderLogbook(mapId) {
+    logbookMap = mapId || logbookMap || app.mapId || AQ.Maps.LIST[0].id;
     const progress = Storage.getProgress(app.profile.id);
-    const wrap = el("aq-logbook");
-    wrap.innerHTML = "";
-    for (const map of AQ.Maps.LIST) {
-      const record = ((progress.maps || {})[map.id]) || null;
-      const table = Storage.leaderboard(map.id);
-      if (!record && !table.length) continue;
-      const section = document.createElement("section");
-      section.className = "aq-log-map";
-      section.innerHTML =
-        "<h3>" + map.name + "</h3>" +
-        (table.length
-          ? '<table class="aq-scores"><tbody>' + table.map((row, i) =>
-              "<tr><td>" + (i + 1) + "</td><td>" + row.avatar + " " + row.name + "</td>" +
-              "<td>" + row.best + "</td><td>" + (row.medal ? medalDot(row.medal) : "") + "</td>" +
-              "<td>" + row.plays + " dive" + (row.plays === 1 ? "" : "s") + "</td></tr>").join("") +
-            "</tbody></table>"
-          : "") +
-        (record && record.log && record.log.length
-          ? '<ol class="aq-history">' + record.log.map((e) =>
-              "<li><span>" + new Date(e.at).toLocaleDateString() + "</span>" +
-              "<strong>" + e.score + "</strong>" +
-              "<em>" + (e.rank || "") + (e.medal ? " · " + e.medal : "") + "</em></li>").join("") + "</ol>"
-          : "");
-      wrap.appendChild(section);
-    }
-    if (!wrap.children.length) wrap.innerHTML = "<p class='aq-empty'>No dives logged yet.</p>";
+    const record = ((progress.maps || {})[logbookMap]) || null;
+    const table = Storage.leaderboard(logbookMap);
+    const info = AQ.Maps.info(logbookMap);
+
+    el("aq-log-tabs").innerHTML = AQ.Maps.LIST.map((map) => {
+      const mine = ((progress.maps || {})[map.id]) || {};
+      return '<button class="aq-log-tab' + (map.id === logbookMap ? " is-on" : "") +
+        '" data-map="' + map.id + '">' +
+        '<span class="aq-log-tab-n">' + String(map.n).padStart(2, "0") + "</span>" +
+        (mine.best ? '<span class="aq-log-tab-best">' + mine.best + "</span>" : "") +
+        "</button>";
+    }).join("");
+
+    const podium = table.length
+      ? '<table class="aq-scores"><thead><tr><th></th><th>Diver</th><th>Best</th>' +
+        "<th></th><th>Dives</th><th>Passed</th></tr></thead><tbody>" +
+        table.map((row, i) =>
+          '<tr class="' + (row.id === app.profile.id ? "is-me" : "") + '">' +
+          '<td class="aq-place">' + (i + 1) + "</td>" +
+          "<td>" + row.avatar + " " + row.name + "</td>" +
+          '<td class="aq-best">' + row.best + "</td>" +
+          "<td>" + (row.medal ? medalDot(row.medal) : "") + "</td>" +
+          "<td>" + row.plays + "</td>" +
+          "<td>" + (row.wins || 0) + "</td></tr>").join("") +
+        "</tbody></table>"
+      : "<p class='aq-empty'>Nobody has finished an expedition on this sheet yet.</p>";
+
+    // Your own dives, newest first, each against the best you have managed --
+    // which is what makes a middling score readable as progress or as a slump.
+    const best = record ? record.best : 0;
+    const history = record && record.log && record.log.length
+      ? '<ol class="aq-history">' + record.log.slice().sort((a, b) => b.at - a.at).map((e) =>
+          '<li' + (e.score === best ? ' class="is-best"' : "") + ">" +
+          "<span>" + new Date(e.at).toLocaleDateString() + "</span>" +
+          "<strong>" + e.score + "</strong>" +
+          '<i class="aq-spark"><b style="width:' +
+            (best > 0 ? Math.max(2, Math.round((e.score / best) * 100)) : 0) + '%"></b></i>' +
+          "<em>" + (e.rank || "") + (e.medal ? " · " + e.medal : "") +
+          (e.passed ? "" : " · failed") + "</em></li>").join("") + "</ol>"
+      : "<p class='aq-empty'>You have not finished this one yet.</p>";
+
+    el("aq-logbook").innerHTML =
+      "<h3>" + info.name + "</h3>" +
+      '<p class="aq-log-blurb">' + info.blurb + "</p>" +
+      "<h4>Every diver</h4>" + podium +
+      "<h4>Your dives" + (record ? " · best " + record.best : "") + "</h4>" + history;
   }
+
+  // The tabs are rebuilt on every render, so the listener lives on the strip.
+  el("aq-log-tabs").onclick = (event) => {
+    const tab = event.target.closest("[data-map]");
+    if (!tab) return;
+    GK.Sfx.click();
+    renderLogbook(tab.dataset.map);
+  };
 
   const RULES_HTML = [
     "<h3>How a dive works</h3>",
@@ -807,6 +947,12 @@
       // rather than paddling about in the shallows for 24 turns.
       legal.sort((a, b) => Math.max(...b.map(app.board.row)) - Math.max(...a.map(app.board.row)));
       commit(legal[0]);
+      // A bot cannot answer a dialogue, and an unanswered chooser now holds the
+      // ending back -- so it takes the first bonus going and carries on.
+      if (app.awaitingBonus) {
+        const open = (bonusList().items || []).find((b) => b.state === "open");
+        if (open) { app.bonuses.push(open.id); app.awaitingBonus = false; UI.closeModal("modal-bonus"); refresh(); }
+      }
       return "turn " + s.turn + ", dive " + (s.dive + 1);
     }
     AQ.State.pass(s);
@@ -833,6 +979,29 @@
       const r = AQ.State.surface(app.state);
       refresh();
       return r.ok ? "surfaced" : r.why;
+    })
+    // Finishing every square of a shipwreck is rare enough that a bot can play
+    // all 24 turns without doing it once, so the chooser -- and everything the
+    // tracker does once something is claimed -- is otherwise unreachable to look
+    // at. This opens it on demand.
+    .action("offer a bonus", () => {
+      if (!app.state) return "start a dive first";
+      const list = bonusList();
+      if (!list) return "this map has no bonuses";
+      const open = list.items.filter((b) => b.state === "open");
+      if (!open.length) return "all of them are gone";
+      showBonusChooser();
+      return open.length + " still available";
+    })
+    .action("claim a bonus", () => {
+      const list = bonusList();
+      if (!list) return "this map has no bonuses";
+      const open = list.items.find((b) => b.state === "open");
+      if (!open) return "all of them are gone";
+      if (app.rules.WRECK_BONUSES && app.rules.WRECK_BONUSES.length) app.bonuses.push(open.id);
+      else if (app.progress) app.progress.bonuses.push(open.id);
+      refresh();
+      return "claimed " + open.label;
     });
 
   UI.onScreenChange = (name) => {

@@ -35,6 +35,16 @@ body {
  * is a free reroll whenever you dislike what you got. */
 [hidden] { display: none !important; }
 
+/* gamekit's colour modifiers are .green / .blue / .grey. This game has written
+ * .btn-green / .btn-blue / .btn-grey since it was scaffolded, so none of them
+ * ever matched and every button rendered in the default accent -- Roll, Undo,
+ * Surface, Close and the back arrows all the same gold, which is why nothing on
+ * screen looked like the primary action. Aliased rather than renamed: the class
+ * names are spread across the markup, the help panel and the tutorial. */
+.btn.btn-green { background: var(--gk-green); box-shadow: 0 6px 0 var(--gk-green-sh); }
+.btn.btn-blue  { background: var(--gk-blue);  box-shadow: 0 6px 0 var(--gk-blue-sh); }
+.btn.btn-grey  { background: var(--gk-grey);  box-shadow: 0 6px 0 var(--gk-grey-sh); }
+
 /* ── title ─────────────────────────────────────────────────────────────── */
 
 .aq-title { text-align: center; padding: 8vh 1rem 1.5rem; }
@@ -383,7 +393,7 @@ body {
   display: grid; place-items: center;
   background: rgba(255,255,255,.06); border-radius: 10px;
 }
-.aq-row-icon img { max-width: 84%; max-height: 84%; display: block; }
+.aq-row-icon img { width: 2.1rem; height: 2.1rem; object-fit: contain; display: block; }
 .aq-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .aq-row-body strong { font-size: .92rem; }
 .aq-row-body em {
@@ -410,17 +420,101 @@ body {
   padding: 1rem .9rem; overflow-y: auto;
   width: min(46rem, 100%); margin: 0 auto;
 }
-.aq-log-map { margin-bottom: 1.6rem; }
-.aq-log-map h3 { margin: 0 0 .5rem; font-size: .95rem; letter-spacing: .1em; text-transform: uppercase; color: var(--aq-water); }
-.aq-scores { width: 100%; border-collapse: collapse; font-size: .85rem; margin-bottom: .6rem; }
-.aq-scores td { padding: .35rem .3rem; border-top: 1px solid rgba(255,255,255,.08); }
-.aq-scores td:nth-child(3) { font-weight: 700; font-variant-numeric: tabular-nums; }
+/* One sheet at a time, chosen along the top. Numbered rather than named,
+ * because five full map names will not sit in a row on a phone -- and the
+ * number is what the map list calls them anyway. */
+.aq-log-tabs {
+  display: flex; gap: .4rem; justify-content: center;
+  padding: .8rem .9rem 0; width: min(46rem, 100%); margin: 0 auto;
+}
+.aq-log-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: .1rem;
+  padding: .45rem .3rem; border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05);
+  color: inherit; font: inherit; cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.aq-log-tab:hover { background: rgba(255,255,255,.1); }
+.aq-log-tab.is-on { border-color: var(--aq-dive1); background: rgba(255,179,43,.14); }
+.aq-log-tab-n { font-weight: 800; font-variant-numeric: tabular-nums; }
+.aq-log-tab-best { font-size: .68rem; color: var(--aq-dive1); font-variant-numeric: tabular-nums; }
+.aq-log-tab.is-on .aq-log-tab-n { color: var(--aq-dive1); }
+
+.aq-logbook h3 { margin: 0; font-size: 1.1rem; }
+.aq-log-blurb { margin: .15rem 0 1.2rem; color: rgba(234,246,244,.55); font-size: .85rem; }
+.aq-logbook h4 {
+  margin: 1.4rem 0 .5rem; font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--aq-water);
+}
+.aq-scores { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.aq-scores th {
+  text-align: left; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(234,246,244,.4); font-weight: 700; padding: 0 .3rem .3rem;
+}
+.aq-scores td { padding: .4rem .3rem; border-top: 1px solid rgba(255,255,255,.08); }
+.aq-place { color: rgba(234,246,244,.45); font-variant-numeric: tabular-nums; width: 2ch; }
+.aq-best { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--aq-dive1); }
+/* Your own row, so a table of six divers can be read at a glance. */
+.aq-scores tr.is-me td { background: rgba(255,179,43,.1); }
+.aq-scores tr.is-me td:first-child { border-radius: 8px 0 0 8px; }
+.aq-scores tr.is-me td:last-child { border-radius: 0 8px 8px 0; }
+
 .aq-history { list-style: none; margin: 0; padding: 0; font-size: .8rem; }
-.aq-history li { display: flex; gap: .6rem; align-items: baseline; padding: .28rem 0; border-top: 1px dashed rgba(255,255,255,.07); }
+.aq-history li { display: flex; gap: .6rem; align-items: center; padding: .32rem 0; border-top: 1px dashed rgba(255,255,255,.07); }
 .aq-history span { color: rgba(234,246,244,.5); min-width: 6.5rem; }
-.aq-history strong { font-variant-numeric: tabular-nums; min-width: 3ch; }
-.aq-history em { font-style: normal; color: rgba(234,246,244,.55); }
-.aq-empty { color: rgba(234,246,244,.55); text-align: center; padding: 3rem 1rem; }
+.aq-history strong { font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; }
+.aq-history em { font-style: normal; color: rgba(234,246,244,.55); min-width: 8rem; }
+.aq-history li.is-best strong { color: var(--aq-dive1); }
+/* Each dive against your best on this sheet, so a run of scores reads as a
+ * shape rather than as a column of numbers. */
+.aq-spark { flex: 1; min-width: 3rem; height: 5px; border-radius: 999px; background: rgba(255,255,255,.08); }
+.aq-spark b { display: block; height: 100%; border-radius: 999px; background: var(--aq-water); }
+.aq-history li.is-best .aq-spark b { background: var(--aq-dive1); }
+
+.aq-empty { color: rgba(234,246,244,.55); text-align: center; padding: 1.5rem 1rem; }
+
+/* ── the bonus tracker ─────────────────────────────────────────────────────
+ *
+ * What you have claimed and what is still out there. On paper the bonuses are
+ * printed beside the board with the taken ones circled, so there is never a
+ * moment where you have to remember which you already spent -- and on Map 1 you
+ * are asked to choose one mid-turn, from a list where half the options may
+ * already be gone. Tapping it opens the same list with the words. */
+.aq-bonuses {
+  display: flex; flex-direction: column; gap: .3rem; flex: none;
+  padding: .35rem .5rem; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04);
+  color: inherit; font: inherit; cursor: pointer; text-align: left;
+}
+.aq-bonuses:hover { background: rgba(255,255,255,.09); }
+.aq-bonus-head {
+  display: flex; align-items: baseline; gap: .4rem;
+  font-size: .62rem; letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(234,246,244,.5); font-weight: 700;
+}
+.aq-bonus-count { color: var(--aq-dive1); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.aq-bonus-strip { display: flex; gap: .25rem; flex-wrap: wrap; }
+.aq-chip {
+  width: 1.5rem; height: 1.5rem; border-radius: 6px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.2);
+}
+/* Absolute sizes, not percentages. A percentage height on these grid-centred
+ * images does not resolve against the box that contains them, so the flag --
+ * 106x256, much the tallest sprite in the set -- rendered 36px tall inside a
+ * 24px chip and hung out the bottom of the HUD. */
+.aq-chip-pic { width: 1.2rem; height: 1.2rem; object-fit: contain; display: block; }
+/* Unclaimed is dimmed rather than absent: the point of the strip is seeing what
+ * is still available, not only what you have. */
+.aq-chip.is-open { opacity: .3; }
+.aq-chip.is-claimed { border-color: var(--aq-dive2); background: rgba(67,198,90,.2); }
+.aq-chip.is-struck { opacity: .18; }
+.aq-chip.is-struck::after {
+  content: ""; position: absolute; width: 1.4rem; height: 1px; background: #ff6b6b;
+  transform: rotate(-45deg);
+}
+.aq-chip.is-struck { position: relative; }
+.aq-chip-dot { width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; opacity: .6; }
 
 /* ── modals ────────────────────────────────────────────────────────────── */
 
@@ -440,12 +534,48 @@ body {
 .modal-card .btn { margin-top: 1rem; }
 
 .aq-modal-sub { color: rgba(0,0,0,.55); font-size: .85rem; margin: .2rem 0 .8rem; }
+/* Choosing a bonus.
+ *
+ * Six lines of "5 per X" read as one grey block, and the choice is worth more
+ * thought than that -- it is the difference between a bonus that pays and one
+ * that does not. So each carries the picture of the thing it pays for, and what
+ * it would be worth if taken right now. */
 .aq-bonus-list { display: flex; flex-direction: column; gap: .4rem; }
 .aq-bonus {
-  padding: .6rem .8rem; border-radius: 10px; border: 1.5px solid var(--gk-input-border);
+  display: flex; align-items: center; gap: .7rem;
+  padding: .55rem .7rem; border-radius: 10px; border: 1.5px solid var(--gk-input-border);
   background: #fff; color: var(--gk-ink); font: inherit; cursor: pointer; text-align: left;
 }
-.aq-bonus:disabled { opacity: .35; cursor: default; text-decoration: line-through; }
+.aq-bonus:hover:not(:disabled) { border-color: var(--aq-water); background: rgba(102,198,187,.08); }
+.aq-bonus > span:nth-child(2) { flex: 1; }
+.aq-bonus em {
+  font-style: normal; font-size: .76rem; color: rgba(0,0,0,.45);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.aq-bonus:disabled { opacity: .4; cursor: default; }
+.aq-bonus:disabled > span:nth-child(2) { text-decoration: line-through; }
+.aq-bonus-icon {
+  width: 2.2rem; height: 2.2rem; flex: none;
+  display: grid; place-items: center;
+  background: rgba(0,0,0,.05); border-radius: 8px;
+}
+.aq-bonus-pic { width: 1.75rem; height: 1.75rem; object-fit: contain; display: block; }
+
+/* The same list, read-only, from the tracker in the HUD. */
+.aq-bonus-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .35rem; }
+.aq-bonus-row {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .4rem .55rem; border-radius: 10px; background: rgba(0,0,0,.04);
+}
+.aq-bonus-row > span:nth-child(2) { flex: 1; font-size: .9rem; }
+.aq-bonus-row em {
+  font-style: normal; font-size: .7rem; letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(0,0,0,.4);
+}
+.aq-bonus-row.is-claimed { background: rgba(67,198,90,.14); }
+.aq-bonus-row.is-claimed em { color: #2b8a44; font-weight: 700; }
+.aq-bonus-row.is-struck { opacity: .45; }
+.aq-bonus-row.is-struck > span:nth-child(2) { text-decoration: line-through; }
 .aq-modal-credit { font-size: .74rem; color: rgba(0,0,0,.5); margin-top: 1rem; }
 
 /* ── wider screens: the board and the HUD side by side ─────────────────── */
@@ -527,6 +657,12 @@ body {
 }
 .aq-help-lead { margin: .2rem 0 0; color: rgba(0,0,0,.6); font-size: .88rem; }
 table.aq-help { width: 100%; border-collapse: collapse; font-size: .85rem; }
+/* The printed sheet puts the picture beside every line of its scoring panel,
+ * and that is the column doing the work: a player halfway down an unfamiliar
+ * map is matching what they can see on the board to what the table says it is
+ * worth, which the words "glass squid" do not help with. */
+.aq-help-icon { width: 2.1rem; padding: .35rem .5rem .35rem 0; vertical-align: top; }
+.aq-help-pic { width: 1.9rem; height: 1.9rem; object-fit: contain; display: block; }
 table.aq-help th {
   text-align: left; vertical-align: top; font-weight: 700;
   padding: .35rem .6rem .35rem 0; white-space: nowrap; width: 1%;
@@ -551,6 +687,12 @@ table.aq-help tr + tr { border-top: 1px solid rgba(0,0,0,.08); }
    * tanks. Wheel and air share the first line, the roll takes the second. */
   .aq-hud { gap: .6rem .7rem; padding: .5rem .6rem; flex-wrap: wrap; }
   .aq-roll { flex: 1 0 100%; align-items: stretch; }
+  /* Same story for the bonus tracker: beside the air it squeezed the tanks
+   * until they overflowed and it sat on top of the second and third. Its own
+   * line, laid out along it -- label left, what you hold on the right. */
+  .aq-bonuses { flex: 1 0 100%; flex-direction: row; align-items: center; gap: .5rem; }
+  .aq-bonus-head { flex: none; }
+  .aq-bonus-strip { flex: 1; justify-content: flex-end; flex-wrap: nowrap; }
   .aq-dice { justify-content: center; }
   .aq-choices { flex-direction: row; }
   .aq-choice { flex: 1; justify-content: center; }

@@ -89,6 +89,17 @@
       <div class="aq-tanks" id="aq-tanks"></div>
     </div>
 
+    <!-- What you have claimed and what is still out there. On the printed sheet
+         the bonuses sit beside the board with the taken ones circled, so you
+         never have to remember which you already spent. -->
+    <button class="aq-bonuses" id="aq-bonuses" hidden>
+      <span class="aq-bonus-head">
+        <span id="aq-bonus-title">Bonuses</span>
+        <span class="aq-bonus-count" id="aq-bonus-count"></span>
+      </span>
+      <span class="aq-bonus-strip" id="aq-bonus-strip"></span>
+    </button>
+
     <div class="aq-roll">
       <div class="aq-dice" id="aq-dice"></div>
       <div class="aq-choices" id="aq-choices"></div>
@@ -113,6 +124,7 @@
   <div class="aq-result" id="aq-result"></div>
   <div class="aq-menu-row">
     <button class="btn btn-green" id="btn-again">Dive again</button>
+    <button class="btn btn-blue" id="btn-result-scores">High scores</button>
     <button class="btn btn-grey" data-screen="maps">Back to the maps</button>
   </div>
 </div>
@@ -122,6 +134,9 @@
     <button class="btn btn-grey btn-back" data-screen="maps">←</button>
     <span class="aq-mapname">Logbook</span>
   </header>
+  <!-- One sheet at a time: the five maps score differently enough that a table
+       mixing them compares nothing. -->
+  <div class="aq-log-tabs" id="aq-log-tabs"></div>
   <div class="aq-logbook" id="aq-logbook"></div>
 </div>
 
@@ -134,6 +149,7 @@
     <div class="aq-bonus-list" id="aq-bonus-list"></div>
   </div>
 </div>
+<div class="modal" id="modal-bonus-sheet"><div class="modal-card" id="aq-bonus-sheet-body"></div></div>
 <div class="toast" id="toast"></div>
 
 <script src="lib/gk-util.js"></script>
@@ -155,6 +171,7 @@
 <script src="js/engine/rules/map3.js"></script>
 <script src="js/engine/rules/map4.js"></script>
 <script src="js/engine/rules/map5.js"></script>
+<script src="js/icons.js"></script>
 <script src="js/help.js"></script>
 <script src="js/tutorial.js"></script>
 <script src="js/render/sprites.js"></script>

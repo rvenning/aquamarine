@@ -37,9 +37,15 @@ shelf reads as a shelf. What the computer takes over is the bookkeeping:
   deep you finished, whether you caught a bubble and got the turn free.
 - **Scoring is live**, in the same seven categories printed down the side of the
   sheet, with the working shown at the end rather than a total to take on trust.
-- **A logbook** per map: a high-score table across everyone who plays on this
-  device (and across the family's devices when Firestore is reachable), plus
-  every previous expedition with its score, rank and medal.
+- **A high-score page per sheet**: the family's table for that map with your own
+  row picked out, then every dive you have taken on it against your best. One
+  map at a time, because the five score differently enough that a table mixing
+  them compares nothing -- a 70 on the Trench is not a 70 on the reef. Across
+  everyone who plays on this device, and across the family's devices when
+  Firestore is reachable.
+- **The bonuses you hold and the ones still out there**, in the HUD, the way the
+  printed sheet keeps them beside the board with the taken ones circled. Tapping
+  the strip spells them out.
 - **The turn wheel**, as printed: 24 ticks, half day and half night, filling in
   behind you. A die at setup decides where you join it, and that is what decides
   how your game splits between daylight and dark.
@@ -49,6 +55,13 @@ shelf reads as a shelf. What the computer takes over is the bookkeeping:
 - **Rules and scoring for the map you are on**, behind the ? in the header.
   Every sheet in the box scores differently, and on paper that panel is printed
   beside the board.
+- **The artwork beside the words**, everywhere the game lists creatures: the
+  scoring panel, the bonus chooser, the tracker and the result sheet all draw
+  from one table in `js/icons.js`. A player halfway down an unfamiliar map is
+  matching what they can see on the board to what the table says it is worth,
+  which is a job for the picture rather than for the words "glass squid". The
+  shoal fish follows the sheet -- butterfly on the reef, banner on Apex
+  Predators, surgeonfish in the Trench.
 - **A guided first expedition**, at the top of the map list. Twenty-one cards
   over about ten minutes, played on the real board with the dice scripted so
   each lesson actually comes up: buying the bigger die, what doubles are for,
@@ -131,6 +144,10 @@ by bounding box are all correct at once.
   where the printed rank table says it should.
 - **Storage** — the log-merge rule, which is the one piece of progress that is
   not a simple "keep the better of the two".
+- **Icons** — every key the interface asks for a picture by, checked to resolve
+  to a sprite that is actually on disk. A key that resolves to nothing renders
+  as an empty cell and one that resolves to a missing file renders as a broken
+  image; neither throws and neither logs.
 - **Tutorial** — the guided expedition replayed against the real engine: every
   forced roll rolled, every gated choice looked up in the options the dice
   module actually offers, and every square the coach points at checked to be
@@ -151,6 +168,7 @@ expedition. Progress writes are suppressed while it is on.
     js/engine/rules/   one module per map; map1 is the base game
     js/render/     drawing the sheet
     js/tutorial.js the guided first expedition
+    js/icons.js    which picture stands for which creature
     data/          extracted boards, one per map
     assets/sprites/ the ~50 symbol sprites the board is drawn from (424KB)
     tools/         the extraction pipeline and its labels
