@@ -115,7 +115,8 @@
     });
     app.state.seed = seed;
 
-    if (app.render) app.render.stop();
+    if (app.render) { app.render.stop(); app.render.destroy(); }
+    if (app.wheel) app.wheel.destroy();
     app.render = AQ.Render.create(el("aq-board"), app.board);
     app.render.resize();
     app.render.start();
@@ -166,7 +167,7 @@
     app.render.state.diver = s.lastShape && s.lastShape.length
       ? s.lastShape.reduce((a, i) => (app.board.row(i) > app.board.row(a) ? i : a), s.lastShape[0])
       : null;
-    app.render.draw();
+    app.render.invalidate();
 
     // While the tutorial is running there is exactly one thing to press, so a
     // button the current step is not asking for stays hidden. Undo is the
@@ -315,7 +316,7 @@
     hint(option.freeform
       ? "Doubles — tap any " + option.size + " connected squares."
       : "Drag out a box of " + option.size + ".");
-    app.render.draw();
+    app.render.invalidate();
     if (app.coach) app.coach.did("choose", option);
   }
 
@@ -336,12 +337,17 @@
     return cells;
   }
 
+  // Setting the state is the whole job: the renderer is already painting every
+  // animation frame, so asking it to paint again here only made the SAME frame
+  // twice. That mattered most while dragging, which is exactly when it hurt --
+  // an iPad reports pointer moves faster than it displays frames, so a drag was
+  // costing two or three full redraws per frame shown.
   function preview(cells) {
-    if (!cells || !cells.length) { app.render.state.preview = null; app.render.draw(); return; }
+    if (!cells || !cells.length) { app.render.state.preview = null; app.render.invalidate(); return; }
     const why = AQ.Shapes.reject(app.board, cells, placementOpts());
     app.render.state.preview = { cells, ok: !why };
     hint(why ? capitalise(why) : costLine(cells), !!why);
-    app.render.draw();
+    app.render.invalidate();
   }
 
   function costLine(cells) {
@@ -675,7 +681,6 @@
       if (cells.length === app.option.size && !AQ.Shapes.reject(app.board, cells, placementOpts())) commit(cells);
     }
 
-    window.addEventListener("resize", () => app.render.resize());
     el("aq-zoom").onclick = () => {
       app.render.setZoom(app.render.zoom >= 2 ? 1 : 2);
     };
@@ -927,8 +932,28 @@
     if (close) UI.closeModal(close.dataset.close);
   });
 
-  // The wheel and the board both need re-measuring when the window changes.
-  window.addEventListener("resize", () => { if (app.wheel) app.wheel.resize(); });
+  // Both canvases watch their own boxes with a ResizeObserver, which is the
+  // thing that catches a rotation properly. This is the backstop, and it is not
+  // redundant: an observer only delivers while the page is rendering, and it
+  // reports a box changing but not the device pixel ratio changing underneath a
+  // box that stayed the same size.
+  //
+  // Re-measuring is deliberately deferred. iOS fires `resize` while the rotation
+  // is still in flight, so reading the box right now returns the one being left
+  // behind -- which is the whole bug. Next frame catches the settled layout, and
+  // the later pass catches Safari moving it again when its toolbars finish
+  // animating. Both are free when nothing changed: resize() returns early unless
+  // the buffer and the box actually disagree.
+  const remeasure = () => {
+    if (app.render) app.render.resize();
+    if (app.wheel) app.wheel.resize();
+  };
+  const scheduleRemeasure = () => {
+    requestAnimationFrame(remeasure);
+    setTimeout(remeasure, 350);
+  };
+  window.addEventListener("resize", scheduleRemeasure);
+  window.addEventListener("orientationchange", scheduleRemeasure);
 
   // Developer tools behind ?debug=1. Playing 24 turns by hand to see the
   // result screen is the kind of check that gets skipped, so the panel can

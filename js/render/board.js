@@ -57,7 +57,7 @@ AQ.Render = (() => {
   }
 
   function create(canvas, board) {
-    const ctx = canvas.getContext("2d");
+    let ctx = canvas.getContext("2d");
 
     const view = { zoom: 1, panX: 0, panY: 0 };
     const state = {
@@ -130,13 +130,23 @@ AQ.Render = (() => {
       return mix(base, ABYSS, step);
     }
 
-    function drawWater(L) {
-      const grad = ctx.createLinearGradient(0, L.surfaceY - L.cell, 0, L.y + board.rows * L.cell);
+    // Eleven colour stops that depend on nothing but the layout, rebuilt sixty
+    // times a second. Cached against the same key as the terrain.
+    let grad = null, gradKey = "";
+    function waterGradient(L) {
+      const key = layoutKey(L);
+      if (grad && gradKey === key) return grad;
+      grad = ctx.createLinearGradient(0, L.surfaceY - L.cell, 0, L.y + board.rows * L.cell);
       for (let i = 0; i <= 10; i++) {
         const row = (i / 10) * (board.rows - 1);
         grad.addColorStop(i / 10, rgb(waterAt(row)));
       }
-      ctx.fillStyle = grad;
+      gradKey = key;
+      return grad;
+    }
+
+    function drawWater(L) {
+      ctx.fillStyle = waterGradient(L);
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Light from the surface: broad, slow, and barely there.
@@ -665,13 +675,43 @@ AQ.Render = (() => {
 
     /* ───────────────────────────────────────────────────────── the loop ── */
 
+    // The rock and the depth lines never move.
+    //
+    // Everything else on this board breathes -- the weed sways, the motes drift,
+    // every creature idles on its own clock -- but the terrain is 484 squares of
+    // per-cell fills and lips being redrawn sixty times a second to produce an
+    // identical picture. It is rendered once into an offscreen canvas instead and
+    // blitted, and only rebuilt when the layout it was drawn for changes: a
+    // resize, a rotation, or the zoom button.
+    const layoutKey = (L) =>
+      [canvas.width, canvas.height, L.cell.toFixed(3), L.x.toFixed(2), L.y.toFixed(2)].join(":");
+
+    let cached = null, cachedKey = "";
+    function staticLayer(L) {
+      const key = layoutKey(L);
+      if (cached && cachedKey === key) return cached;
+      cached = cached || document.createElement("canvas");
+      cached.width = canvas.width;
+      cached.height = canvas.height;
+      cachedKey = key;
+      // Point the drawing code at the offscreen surface, so the cache is built by
+      // exactly the same functions that used to draw it live -- there is no
+      // second implementation of the rock to drift out of step.
+      const live = ctx;
+      ctx = cached.getContext("2d");
+      ctx.clearRect(0, 0, cached.width, cached.height);
+      drawTerrain(L);
+      drawDepthLines(L);
+      ctx = live;
+      return cached;
+    }
+
     function draw() {
       const L = layout();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawWater(L);
-      drawTerrain(L);
+      ctx.drawImage(staticLayer(L), 0, 0);
       drawWeed(L);
-      drawDepthLines(L);
       drawObjects(L);
       drawMarks(L);
       drawLegal(L);
@@ -691,16 +731,48 @@ AQ.Render = (() => {
       if (running) raf = requestAnimationFrame(frame);
     }
 
+    // A canvas has two sizes -- the CSS box it occupies and the pixel buffer it
+    // draws into -- and they have to agree or the browser stretches one into the
+    // other.
     function resize() {
       const rect = canvas.getBoundingClientRect();
+      // A screen that is not showing measures 0x0, and sizing the buffer to that
+      // throws the board away: coming back to it would flash blank before the
+      // next resize rebuilt it.
+      if (!rect.width || !rect.height) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.round(rect.width * dpr));
-      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      const w = Math.max(1, Math.round(rect.width * dpr));
+      const h = Math.max(1, Math.round(rect.height * dpr));
+      if (w === canvas.width && h === canvas.height) return;
+      canvas.width = w;
+      canvas.height = h;
       draw();
     }
 
+    // Rotating an iPad fires `resize` on the window while the layout is still
+    // mid-turn, so the buffer was being sized from the box the page was leaving
+    // rather than the one it was arriving at -- and the browser then scaled that
+    // wrongly-shaped bitmap into the new box, which is why every fish came out
+    // slightly stretched and stayed that way until something else redrew.
+    //
+    // A ResizeObserver reports the box AFTER layout has settled, which is the
+    // only moment the two sizes can be made to agree.
+    const observer = typeof ResizeObserver === "function"
+      ? new ResizeObserver(() => resize())
+      : null;
+    if (observer) observer.observe(canvas);
+
     return {
       state, draw, resize, cellAt, layout,
+      // Say the board has changed, without insisting on a repaint.
+      //
+      // While the game screen is up the animation loop is already painting every
+      // frame, so calling draw() from an input handler only rendered the same
+      // frame twice -- and a drag on an iPad reports moves faster than the screen
+      // refreshes, so it was two or three times over. This paints only when the
+      // loop is not running, which is the one case where nothing else would.
+      invalidate() { if (!running) draw(); },
+      destroy() { if (observer) observer.disconnect(); },
       start() { if (running) return; running = true; t0 = performance.now() - time * 1000; raf = requestAnimationFrame(frame); },
       stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = null; },
       splash(cell, text, good) { state.splashes.push({ cell, text, good: good !== false, at: time }); },

@@ -127,6 +127,30 @@ plausible. Getting all three colossal squid to the right size means the grid
 fit, the un-fusing of connected ink, and measuring coverage by ink rather than
 by bounding box are all correct at once.
 
+## Drawing it quickly
+
+The board is redrawn every animation frame, and two things were making that cost
+far more than it needed to -- both of which showed up on an iPad long before a
+desktop noticed.
+
+- **The input path was painting too.** Dragging a box called `draw()` on every
+  pointer move, on top of the animation loop already painting every frame. An
+  iPad reports moves faster than it refreshes, so a drag rendered the same frame
+  two or three times. Input now only sets state; `invalidate()` paints solely
+  when the loop is not running.
+- **Static layers were being rebuilt sixty times a second.** The rock is 484
+  squares of per-cell fills and lips, and the depth gradient is eleven colour
+  stops -- neither changes unless the layout does. Both are cached against a
+  layout key and rebuilt on a resize, a rotation or the zoom button.
+
+Together those took a drag frame from 2.6ms to 1.2ms of drawing, and from three
+of them per displayed frame to one.
+
+A third attempt is worth recording because it failed: hoisting the sprite shadow
+out of the per-object loop looked like an obvious saving and measured *worse*.
+The beacons, flags and steam are drawn before that assignment and return early,
+so hoisting handed them a shadow they never had -- more blurring, not less.
+
 ## Tests
 
     npm test

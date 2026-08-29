@@ -31,13 +31,24 @@ AQ.Wheel = (() => {
 
     let state = { tick: 0, played: 0, startTick: 0 };
 
+    // Same two sizes as the board, and the same trap: a buffer measured while a
+    // rotation is still settling gets stretched into the box that arrives.
     function resize() {
       const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;   // a screen that is not showing
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.round(rect.width * dpr));
-      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      const w = Math.max(1, Math.round(rect.width * dpr));
+      const h = Math.max(1, Math.round(rect.height * dpr));
+      if (w === canvas.width && h === canvas.height) return;
+      canvas.width = w;
+      canvas.height = h;
       draw();
     }
+
+    const observer = typeof ResizeObserver === "function"
+      ? new ResizeObserver(() => resize())
+      : null;
+    if (observer) observer.observe(canvas);
 
     function draw() {
       const w = canvas.width, h = canvas.height;
@@ -151,6 +162,7 @@ AQ.Wheel = (() => {
 
     return {
       resize, draw,
+      destroy() { if (observer) observer.disconnect(); },
       set(next) { Object.assign(state, next); draw(); },
       get state() { return state; },
     };

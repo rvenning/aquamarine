@@ -10,7 +10,7 @@
 // map's artwork is cached the first time it is dived and available offline
 // from then on.
 
-const CACHE = "aquamarine-v3";
+const CACHE = "aquamarine-v5";
 
 const SHELL = [
   "./",
