@@ -153,3 +153,108 @@ function wouldPay(id, board, obj, isDay) {
   if (obj.symbol === "cuttlefish") return !isDay;
   return null;
 }
+
+/* ── how much of the hour is left ───────────────────────────────────────── */
+
+// The count in the day/night pill. Stepped forward rather than computed from
+// the wheel's geometry, because the wheel wraps: four of the six starting faces
+// cross the day/night line twice, so "ticks to the boundary" is a different
+// question from "turns of daylight I can still spend".
+
+const stateAt = (mapId, face, turn) => {
+  const s = AQ.State.create(boardFor(mapId), () => 0.5, { startFace: face });
+  s.turn = turn;
+  return s;
+};
+
+test("the pill counts the turns of this hour, including this one", { skip }, () => {
+  // Face 1 joins at tick 0, and ticks 0-11 are daylight: twelve turns of it.
+  const dawn = AQ.State.hoursLeft(stateAt("map1", 1, 0));
+  assert.strictEqual(dawn.n, 12);
+  assert.strictEqual(dawn.day, true);
+  assert.strictEqual(dawn.capped, false);
+
+  // One turn in, one fewer.
+  assert.strictEqual(AQ.State.hoursLeft(stateAt("map1", 1, 1)).n, 11);
+  // The last turn of daylight says one, not zero.
+  const dusk = AQ.State.hoursLeft(stateAt("map1", 1, 11));
+  assert.strictEqual(dusk.n, 1);
+  assert.strictEqual(dusk.day, true);
+  // And the next turn is the other half.
+  assert.strictEqual(AQ.State.hoursLeft(stateAt("map1", 1, 12)).day, false);
+});
+
+test("a half the game outlasts is marked, not overstated", { skip }, () => {
+  // Face 1's night runs ticks 12-23, and the game ends on turn 24 — so the
+  // twelve turns are real, but there is no dusk left to beat.
+  const night = AQ.State.hoursLeft(stateAt("map1", 1, 12));
+  assert.strictEqual(night.n, 12);
+  assert.strictEqual(night.day, false);
+  assert.strictEqual(night.capped, true, "night runs to the end of the game");
+
+  // Face 2 joins at tick 4: eight turns of daylight before the first change.
+  const face2 = AQ.State.hoursLeft(stateAt("map1", 2, 0));
+  assert.strictEqual(face2.n, 8, "face 2 joins at tick 4, so eight of the twelve daylight ticks remain");
+  assert.strictEqual(face2.capped, false);
+});
+
+test("it never promises more turns than the game has left", { skip }, () => {
+  // The failure this guards is the one that matters: counting the wheel's
+  // remaining ticks would offer light the expedition never reaches.
+  for (let face = 1; face <= 6; face++) {
+    for (let turn = 0; turn < 24; turn++) {
+      const s = stateAt("map1", face, turn);
+      const left = AQ.State.hoursLeft(s);
+      assert.ok(left.n >= 1, "face " + face + " turn " + turn + " counted " + left.n);
+      assert.ok(left.n <= s.turns - turn,
+        "face " + face + " turn " + turn + ": promised " + left.n +
+        " with only " + (s.turns - turn) + " turns of game left");
+    }
+  }
+});
+
+test("the count falls by one a turn and resets when the hour turns", { skip }, () => {
+  for (let face = 1; face <= 6; face++) {
+    let previous = null, previousDay = null;
+    for (let turn = 0; turn < 24; turn++) {
+      const { n, day } = AQ.State.hoursLeft(stateAt("map1", face, turn));
+      if (previous !== null) {
+        if (day === previousDay)
+          assert.strictEqual(n, previous - 1,
+            "face " + face + " turn " + turn + ": " + previous + " then " + n);
+        else
+          assert.ok(n > previous, "the new half should start with more than the old one ended on");
+      }
+      previous = n; previousDay = day;
+    }
+    // The last turn of the game is always the last of its half.
+    assert.strictEqual(AQ.State.hoursLeft(stateAt("map1", face, 23)).n, 1);
+  }
+});
+
+test("capped means exactly that no change of hour remains", { skip }, () => {
+  for (let face = 1; face <= 6; face++) {
+    for (let turn = 0; turn < 24; turn++) {
+      const s = stateAt("map1", face, turn);
+      const { capped, day } = AQ.State.hoursLeft(s);
+      let changes = false;
+      for (let t = turn; t < s.turns; t++) if (AQ.State.isDay(s, t) !== day) changes = true;
+      assert.strictEqual(capped, !changes,
+        "face " + face + " turn " + turn + ": capped " + capped + " but changes " + changes);
+    }
+  }
+});
+
+test("only two of the six faces give a single change of hour", { skip }, () => {
+  // Worth pinning: it is the reason the count is worth showing at all. Four of
+  // the six starts run out of light and get it back, and you cannot infer which.
+  const single = [];
+  for (let face = 1; face <= 6; face++) {
+    const s = stateAt("map1", face, 0);
+    let n = 0;
+    for (let t = 1; t < s.turns; t++) if (AQ.State.isDay(s, t) !== AQ.State.isDay(s, t - 1)) n++;
+    if (n === 1) single.push(face);
+    assert.ok(n === 1 || n === 2, "face " + face + " changes hour " + n + " times");
+  }
+  assert.deepStrictEqual(single, [1, 4]);
+});

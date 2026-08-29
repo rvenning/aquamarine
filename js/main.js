@@ -149,8 +149,18 @@
   function refresh() {
     const s = app.state;
     const day = AQ.State.isDay(s);
-    el("aq-phase").textContent = day ? "day" : "night";
+    // The hour, and how much of it is left, as one statement. The wheel already
+    // shows a number in its middle -- turns left in the whole GAME -- so this one
+    // lives inside the pill rather than beside it, where two numbers meaning
+    // different things would sit next to each other.
+    const left = AQ.State.hoursLeft(s);
     el("aq-phase").className = "aq-phase " + (day ? "is-day" : "is-night");
+    el("aq-phase").innerHTML = (day ? "day" : "night") +
+      (left.n > 0 ? '<span class="aq-left' + (left.capped ? " is-capped" : "") + '">' + left.n + "</span>" : "");
+    el("aq-phase").title = left.n > 0
+      ? left.n + " turn" + (left.n === 1 ? "" : "s") + " of " + (day ? "daylight" : "dark") +
+        (left.capped ? " — and the expedition ends with it" : " left")
+      : "";
     if (app.wheel) app.wheel.set({
       tick: AQ.State.tickOf(s), played: Math.min(s.turn, s.turns), startTick: s.startTick,
     });

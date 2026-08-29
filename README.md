@@ -60,7 +60,12 @@ shelf reads as a shelf. What the computer takes over is the bookkeeping:
   spend the air getting to a cuttlefish at noon and find out it is crossed out
   afterwards. Here the board fades whatever is asleep, so the sheet answers "is
   this worth enclosing right now" while you are dragging the box over it, and a
-  pair of chips under the wheel names which is which. Both come from one call to
+  pair of chips under the wheel names which is which. The pill says how many
+  turns of that hour are left, which is the part you cannot work out from the
+  wheel: four of the six starting faces cross the day/night line TWICE, so the
+  light runs out and comes back, and how much of it you have is different every
+  game. The count is dimmed when the hour outlasts the expedition — the turns
+  are real, but there is no dusk left to beat. Both come from one call to
   the map's own rules, because the way this goes wrong is the board dimming a
   stingray while the legend beside it says stingrays are counting. The Trench
   states the rule differently -- its glass squid migrate rather than sleep, up

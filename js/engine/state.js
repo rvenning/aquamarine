@@ -63,6 +63,24 @@ AQ.State = (() => {
     return t >= from && t <= to;
   };
 
+  // How many turns of the current hour are left, counting this one -- and
+  // whether it is the GAME that ends it rather than the hour.
+  //
+  // Counted by stepping forward rather than by arithmetic on the wheel, because
+  // the wheel wraps: four of the six starting faces cross the day/night line
+  // TWICE, so "ticks to the boundary" is not the same question. Stepping also
+  // makes the cap fall out for free -- promising eight turns of night when four
+  // turns of game remain would be worse than saying nothing.
+  function hoursLeft(s) {
+    const day = isDay(s);
+    let n = 0;
+    for (let t = s.turn; t < s.turns; t++) {
+      if (isDay(s, t) !== day) return { n, day, capped: false };
+      n++;
+    }
+    return { n, day, capped: true };
+  }
+
   const airLeft = (s) => Math.max(0, s.tanks[s.dive] - s.spent[s.dive]);
   const tankEmpty = (s) => s.spent[s.dive] >= s.tanks[s.dive];
 
@@ -203,6 +221,6 @@ AQ.State = (() => {
 
   return {
     DIVES, create, rollDice, options, place, pass, surface, costOf,
-    isDay, tickOf, airLeft, tankEmpty, diveDepths, soloResult,
+    isDay, tickOf, hoursLeft, airLeft, tankEmpty, diveDepths, soloResult,
   };
 })();

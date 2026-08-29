@@ -173,14 +173,23 @@ body {
   background: rgba(0,0,0,.28);
 }
 
-/* The turn track. The wheel does the work; the label under it only names the
- * half you are in, because the wheel already shows how much of it is left. */
+/* The turn track. The wheel counts down the game; the pill under it names the
+ * half you are in and how many turns of that half you have left, which the wheel
+ * does not say and which decides whether to chase the stingrays now or later. */
 .aq-track { display: flex; flex-direction: column; align-items: center; gap: .2rem; flex: none; }
 #aq-wheel { width: 68px; height: 68px; display: block; }
 .aq-phase {
   font-size: .68rem; letter-spacing: .12em; text-transform: uppercase;
   padding: .1rem .45rem; border-radius: 999px; font-weight: 700;
+  display: inline-flex; align-items: baseline; gap: .3rem;
 }
+/* How many turns of this hour are left. Inside the pill, because the wheel a
+ * few pixels away already shows a number -- turns left in the whole game -- and
+ * two loose numbers meaning different things is the way this reads wrong. */
+.aq-left { font-size: .8rem; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+/* Dimmed when the hour outlasts the game: the count is still the turns you can
+ * use, but there is no dusk left to beat, so there is nothing to hurry for. */
+.aq-left.is-capped { opacity: .6; }
 .aq-phase.is-day { background: rgba(255,206,59,.18); color: #ffce3b; }
 .aq-phase.is-night { background: rgba(179,156,255,.2); color: var(--aq-night); }
 
