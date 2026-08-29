@@ -26,6 +26,8 @@
     wheel: null,        // the day/night turn track
     undo: null,         // snapshot of the state before the last box
     canUndo: false,
+    coach: null,        // the tutorial, when one is running
+    teaching: false,    // this game IS the tutorial, coach dismissed or not
   };
 
   /* ─────────────────────────────────────────── profiles and map choice ── */
@@ -78,9 +80,11 @@
 
   /* ──────────────────────────────────────────────────────── a new dive ── */
 
-  async function startGame(mapId) {
+  async function startGame(mapId, teaching) {
     app.mapId = mapId;
-    el("aq-mapname").textContent = AQ.Maps.info(mapId).name;
+    app.coach = null;
+    app.teaching = !!teaching;
+    el("aq-mapname").textContent = teaching ? "Learn to dive" : AQ.Maps.info(mapId).name;
     UI.showScreen("game");
     try {
       app.board = await AQ.Maps.load(mapId);
@@ -94,12 +98,20 @@
     app.bonuses = [];
 
     const seed = GK.util.seedFrom(mapId + ":" + Date.now() + ":" + Math.random());
-    const rng = GK.util.seededRand(seed);
+    // The tutorial needs particular dice to make particular points, so it plays
+    // through a generator it can prompt. Past the end of the script it falls
+    // back to the seeded one and the game is an ordinary game again.
+    const rng = teaching
+      ? AQ.Tutorial.scriptedRng(GK.util.seededRand(seed))
+      : GK.util.seededRand(seed);
     // Each map keeps its own running state -- torches, research tracks, photo
     // powers, fossils quarried -- and hands the engine the hooks that read it.
     app.progress = app.rules.newProgress ? app.rules.newProgress() : null;
     const rules = app.rules.hooks ? app.rules.hooks(app.progress, app.board) : {};
-    app.state = AQ.State.create(app.board, rng, { rules });
+    app.state = AQ.State.create(app.board, rng, {
+      rules,
+      startFace: teaching ? AQ.Tutorial.START_FACE : undefined,
+    });
     app.state.seed = seed;
 
     if (app.render) app.render.stop();
@@ -113,7 +125,20 @@
     app.undo = null;
     bindBoard();
     refresh();
-    hint("Roll to begin. You join the turn wheel at " + app.state.startFace + ".");
+    if (teaching) {
+      app.coach = AQ.Tutorial.begin({
+        app,
+        redrawChoices: refresh,
+        leave: () => { app.coach = null; UI.showScreen("maps"); },
+      });
+      // Showing the first card asks the game to redraw its buttons, and at that
+      // moment app.coach is still unassigned -- so step one alone would come up
+      // with every button live. One more refresh, now that it is set.
+      refresh();
+      hint("Follow the card on the board.");
+    } else {
+      hint("Roll to begin. You join the turn wheel at " + app.state.startFace + ".");
+    }
   }
 
   /* ─────────────────────────────────────────────────────────── the HUD ── */
@@ -140,9 +165,15 @@
       : null;
     app.render.draw();
 
-    el("btn-roll").hidden = !!s.roll || s.over;
-    el("btn-surface").hidden = !s.roll || !s.diveCells[s.dive].length || s.dive >= AQ.State.DIVES - 1;
-    el("btn-undo").hidden = !app.canUndo || s.over;
+    // While the tutorial is running there is exactly one thing to press, so a
+    // button the current step is not asking for stays hidden. Undo is the
+    // exception it makes no sense to offer: the script would carry on from a
+    // turn that had been taken back.
+    const coach = app.coach;
+    el("btn-roll").hidden = !!s.roll || s.over || (coach && !coach.canRoll());
+    el("btn-surface").hidden = !s.roll || !s.diveCells[s.dive].length
+      || s.dive >= AQ.State.DIVES - 1 || (coach && !coach.canSurface());
+    el("btn-undo").hidden = !app.canUndo || s.over || !!coach;
     if (s.over) finish();
   }
 
@@ -192,7 +223,12 @@
     if (!s.roll || rolling) return;
     for (const option of AQ.State.options(s)) {
       const button = document.createElement("button");
-      button.className = "aq-choice" + (app.option && app.option.id === option.id ? " is-picked" : "");
+      // A tutorial step teaching one particular die greys out the other rather
+      // than removing it, so the choice being passed up is still visible.
+      const barred = app.coach && !app.coach.optionAllowed(option);
+      button.className = "aq-choice" + (app.option && app.option.id === option.id ? " is-picked" : "") +
+        (barred ? " is-barred" : "");
+      button.disabled = !!barred;
       button.innerHTML = "<strong>" + option.size + "</strong><span>" + option.label +
         (option.note ? "<em>" + option.note + "</em>" : "") + "</span>";
       button.onclick = () => chooseOption(option);
@@ -273,6 +309,7 @@
       ? "Doubles — tap any " + option.size + " connected squares."
       : "Drag out a box of " + option.size + ".");
     app.render.draw();
+    if (app.coach) app.coach.did("choose", option);
   }
 
   const placementOpts = () => ({
@@ -388,6 +425,17 @@
     refresh();
     renderTanks(app.undo.spent);
     if (!app.state.over) hint(turnSummary(result.cost));
+    if (app.coach) app.coach.did("place", {
+      // What this box actually caught, so the coach can name it. Three quarters
+      // of the legal first boxes on this sheet enclose nothing at all, and a
+      // card that talks about the fish you caught when you caught none teaches
+      // the player to stop reading it.
+      caught: AQ.Scoring.collect(app.state).caught.slice(before).map((e) => e.symbol),
+      // Whether the box finished below the first depth line, which is the
+      // thing the depth lesson wants to react to.
+      deep: app.board.depthCost(Math.max.apply(null, cells.map((i) => app.board.row(i)))) > 0,
+      cost: result.cost,
+    });
   }
 
   // Ring whatever this box just caught, and say what it was worth. On paper
@@ -460,11 +508,17 @@
       return app.render.cellAt((event.clientX - rect.left) * dpr, (event.clientY - rect.top) * dpr);
     };
 
+    // The coach card sits over the bottom of the board. Reading and dragging
+    // are never the same moment, so it gets out of the way for the drag.
+    const coachCard = el("aq-coach");
+    const coachAway = (away) => coachCard.classList.toggle("is-away", away);
+
     canvas.onpointerdown = (event) => {
       if (!app.option) { hint("Choose which die to take first.", true); return; }
       const cell = at(event);
       if (cell === null) return;
       canvas.setPointerCapture(event.pointerId);
+      coachAway(true);
       if (app.painted) {
         togglePainted(cell);
       } else {
@@ -486,6 +540,7 @@
 
     canvas.onpointerup = () => {
       pointer = null;
+      coachAway(false);
       if (!app.drag) return;
       const cells = rectBetween(app.drag.from, app.drag.to);
       app.drag = null;
@@ -518,11 +573,18 @@
     el("btn-roll").hidden = true;
     el("btn-undo").hidden = true;
     hint("Rolling…");
+    if (app.coach) app.coach.aboutToRoll();
     rollWithFlourish(() => {
       refresh();
+      if (app.coach) app.coach.did("roll");
       const options = AQ.State.options(app.state);
-      if (options.length === 1) chooseOption(options[0]);
-      else hint("Take the low die free, or pay for the high one.");
+      // A double is the only option there is, so choosing it is not a choice --
+      // except in the tutorial, where taking it is the lesson.
+      if (options.length === 1 && !app.coach) chooseOption(options[0]);
+      else if (options.length > 1) hint("Take the low die free, or pay for the high one.");
+      // The tutorial takes its own doubles, so the hint has to say something --
+      // otherwise the line is left reading "Rolling…" with the dice long settled.
+      else hint("Doubles — take them.");
     });
   };
 
@@ -552,7 +614,13 @@
     app.canUndo = false;
     refresh();
     hint("Dive " + (app.state.dive + 1) + " starts from a boat.");
+    if (app.coach) app.coach.did("surface");
   };
+
+  // The guided expedition is always the base game. Everything the other four
+  // sheets add is written against Map 1's rules, so it is the only one worth
+  // teaching on.
+  el("btn-tutorial").onclick = () => startGame("map1", true);
 
   el("btn-again").onclick = () => startGame(app.mapId);
   el("btn-logbook").onclick = () => { renderLogbook(); UI.showScreen("logbook"); };
@@ -592,7 +660,11 @@
       depths: result.solo.depths,
       breakdown: result.lines.map((l) => ({ key: l.key, points: l.points })),
     };
-    const record = Storage.logDive(app.profile.id, app.mapId, entry);
+    // A tutorial game is played on scripted dice, so it does not belong in the
+    // logbook or anywhere near a high score. It cannot normally reach here --
+    // the script ends long before turn 24 -- but a player who skips the coach
+    // and keeps going would otherwise post a rigged run.
+    const record = app.teaching ? null : Storage.logDive(app.profile.id, app.mapId, entry);
     const best = record && record.best === result.total && record.plays > 1;
 
     el("aq-result-map").textContent = AQ.Maps.info(app.mapId).name;
@@ -687,6 +759,8 @@
 
   const RULES_HTML = [
     "<h3>How a dive works</h3>",
+    "<p class='aq-modal-sub'>Or skip the reading: <strong>Learn to dive</strong>",
+    "on the expedition list walks you through all of this a turn at a time.</p>",
     "<p>Twenty-four turns, split between day and night. Each turn two dice are",
     "rolled and you take <strong>one</strong> of them: draw a box enclosing that",
     "many squares. Taking the higher die costs air equal to the difference.</p>",
@@ -739,6 +813,12 @@
     refresh();
     return "passed";
   }
+
+  // Behind ?debug=1, the live game is reachable from the console. Drawing a box
+  // is a drag across a canvas, so without this there is no way to drive a turn
+  // from outside the page -- which is what checking the tutorial's flow, or any
+  // placement bug, actually needs.
+  if (new URLSearchParams(location.search).get("debug") === "1") AQ.app = app;
 
   GK.Debug.init({ storage: Storage, title: "AQUAMARINE" })
     .action("play a turn", () => (app.state ? autoTurn() : "start a dive first"))

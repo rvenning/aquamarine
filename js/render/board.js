@@ -65,6 +65,7 @@ AQ.Render = (() => {
       preview: null,
       legal: null,
       marks: [],
+      spotlight: null,      // squares the tutorial is pointing at
       diver: null,          // cell the diver is at, or null between dives
       splashes: [],         // short-lived flourishes when something is caught
       dive: 0,
@@ -591,6 +592,20 @@ AQ.Render = (() => {
       ctx.restore();
     }
 
+    // What the tutorial is talking about. Gold, because every other overlay on
+    // this board is white or red, and it has to read as "look here" rather than
+    // as another rule about where you may draw.
+    function drawSpotlight(L) {
+      if (!state.spotlight || !state.spotlight.size) return;
+      const pulse = 0.5 + Math.sin(time * 3) * 0.5;
+      ctx.save();
+      ctx.fillStyle = "rgba(255,206,59," + (0.1 + pulse * 0.14).toFixed(3) + ")";
+      for (const i of state.spotlight) fillCells(L, [i], ctx.fillStyle);
+      outline(L, [...state.spotlight], "rgba(255,206,59," + (0.55 + pulse * 0.45).toFixed(3) + ")",
+        Math.max(2, L.cell * 0.09));
+      ctx.restore();
+    }
+
     function drawPreview(L) {
       if (!state.preview) return;
       const ok = state.preview.ok;
@@ -660,6 +675,7 @@ AQ.Render = (() => {
       drawObjects(L);
       drawMarks(L);
       drawLegal(L);
+      drawSpotlight(L);
       drawDives(L);
       drawDiver(L);
       drawPreview(L);

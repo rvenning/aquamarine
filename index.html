@@ -36,6 +36,13 @@
     <button class="btn btn-grey btn-sound">🔊</button>
   </header>
   <h2 class="aq-h2">Choose an expedition</h2>
+  <button class="aq-learn" id="btn-tutorial">
+    <span class="aq-learn-icon">🤿</span>
+    <span class="aq-learn-body">
+      <strong>Learn to dive</strong>
+      <span>A guided first expedition. Ten minutes, and you will know the whole game.</span>
+    </span>
+  </button>
   <div class="aq-maps" id="aq-maps"></div>
   <div class="aq-menu-row">
     <button class="btn btn-blue" id="btn-logbook">Logbook</button>
@@ -55,6 +62,17 @@
   <div class="aq-board-wrap">
     <canvas id="aq-board"></canvas>
     <button class="aq-zoom" id="aq-zoom" title="Zoom">⤢</button>
+    <!-- The tutorial talks from over the board, so what it is pointing at is
+         always on screen beside the words. -->
+    <div class="aq-coach" id="aq-coach" hidden>
+      <div class="aq-coach-head">
+        <strong id="aq-coach-title"></strong>
+        <span class="aq-coach-count" id="aq-coach-count"></span>
+        <button class="aq-coach-skip" id="aq-coach-skip">Skip</button>
+      </div>
+      <p id="aq-coach-text"></p>
+      <button class="btn btn-green aq-coach-next" id="aq-coach-next">Next</button>
+    </div>
   </div>
 
   <div class="aq-hud">
@@ -138,6 +156,7 @@
 <script src="js/engine/rules/map4.js"></script>
 <script src="js/engine/rules/map5.js"></script>
 <script src="js/help.js"></script>
+<script src="js/tutorial.js"></script>
 <script src="js/render/sprites.js"></script>
 <script src="js/render/wheel.js"></script>
 <script src="js/render/board.js"></script>

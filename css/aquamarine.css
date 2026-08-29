@@ -28,6 +28,13 @@ body {
 .screen { display: none; }
 .screen.active { display: flex; flex-direction: column; min-height: 100dvh; }
 
+/* gamekit's .btn sets display:inline-flex, and a class in an author stylesheet
+ * beats the browser's own [hidden] rule -- so `el.hidden = true` on a button did
+ * nothing at all. Every hidden control in this game stayed on screen and stayed
+ * clickable, Roll included: pressing it again mid-turn re-rolled the dice, which
+ * is a free reroll whenever you dislike what you got. */
+[hidden] { display: none !important; }
+
 /* ── title ─────────────────────────────────────────────────────────────── */
 
 .aq-title { text-align: center; padding: 8vh 1rem 1.5rem; }
@@ -80,7 +87,30 @@ body {
 
 /* ── map list ──────────────────────────────────────────────────────────── */
 
-.aq-maps { display: flex; flex-direction: column; gap: .55rem; padding: 0 .8rem; }
+/* The way in for somebody who has never played. It sits above the five maps
+ * rather than among them, because it is not a sixth expedition. */
+/* The learn card and the map list share one width, so they read as one column.
+ * The list used to size itself to the widest map card -- fine on its own, but a
+ * full-bleed button above it made the five maps look like an indented sub-list. */
+.aq-maps, .aq-learn { width: min(100% - 1.6rem, 26rem); align-self: center; }
+
+.aq-learn {
+  display: flex; align-items: center; gap: .85rem;
+  margin: 0 0 .8rem; text-align: left;
+  padding: .8rem .9rem;
+  border: 1px solid rgba(255,206,59,.35); border-radius: 14px;
+  background: rgba(255,206,59,.1);
+  color: inherit; font: inherit; cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+.aq-learn:hover { background: rgba(255,206,59,.18); }
+.aq-learn:active { transform: translateY(1px); }
+.aq-learn-icon { font-size: 1.5rem; line-height: 1; }
+.aq-learn-body { flex: 1; display: flex; flex-direction: column; gap: .15rem; }
+.aq-learn-body strong { color: #ffce3b; }
+.aq-learn-body span { font-size: .8rem; color: rgba(234,246,244,.65); }
+
+.aq-maps { display: flex; flex-direction: column; gap: .55rem; }
 .aq-map {
   display: flex; align-items: center; gap: .85rem;
   width: 100%; text-align: left;
@@ -231,6 +261,9 @@ body {
   background: rgba(255,255,255,.06); color: inherit; font: inherit; cursor: pointer;
 }
 .aq-choice.is-picked { border-color: var(--aq-dive1); background: rgba(255,179,43,.18); }
+/* Greyed rather than gone, so the tutorial's "take the 5" still shows what the
+ * 2 would have been. */
+.aq-choice.is-barred { opacity: .3; cursor: default; }
 .aq-choice strong { font-size: 1.15rem; }
 .aq-choice span { display: flex; flex-direction: column; font-size: .72rem; line-height: 1.25; text-align: left; }
 .aq-choice em { font-style: normal; color: rgba(234,246,244,.55); }
@@ -442,6 +475,49 @@ body {
   .aq-actions { grid-column: 2; grid-row: 4; }
 }
 
+/* ── the tutorial's coach ──────────────────────────────────────────────────
+ *
+ * Over the board rather than beside it, so the words and the squares they are
+ * about are in one glance -- and low down, because the lessons that ask for a
+ * box drawn are all in the top two thirds of the sheet. While a finger is
+ * actually on the board it fades almost out of the way; there is no point
+ * reading instructions and dragging at the same moment. */
+.aq-coach {
+  position: absolute; left: .6rem; right: .6rem; bottom: .6rem;
+  max-width: 32rem; margin: 0 auto;
+  padding: .7rem .85rem .8rem;
+  border-radius: 14px;
+  background: rgba(8,26,34,.93);
+  border: 1px solid rgba(255,206,59,.35);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  backdrop-filter: blur(6px);
+  transition: opacity .18s;
+}
+.aq-coach.is-away { opacity: .1; pointer-events: none; }
+.aq-coach.is-new { animation: aq-coach-in .28s ease-out; }
+@keyframes aq-coach-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.aq-coach-head { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .3rem; }
+.aq-coach-head strong { color: #ffce3b; font-size: .95rem; }
+.aq-coach-count {
+  flex: 1; font-size: .7rem; color: rgba(234,246,244,.4);
+  font-variant-numeric: tabular-nums;
+}
+.aq-coach-skip {
+  border: 0; background: none; color: rgba(234,246,244,.45);
+  font: inherit; font-size: .74rem; cursor: pointer; padding: 0;
+  text-decoration: underline;
+}
+.aq-coach-skip:hover { color: rgba(234,246,244,.8); }
+.aq-coach p {
+  margin: 0; font-size: .85rem; line-height: 1.5;
+  color: rgba(234,246,244,.92);
+}
+.aq-coach p b { color: #fff; }
+.aq-coach-next { margin-top: .7rem; width: 100%; }
+
 /* Help and rules read as a document, not a dialogue. */
 .aq-help-card { max-height: 84vh; overflow-y: auto; }
 .aq-help-card h3 { margin: 0 0 .2rem; }
@@ -467,6 +543,9 @@ table.aq-help tr + tr { border-top: 1px solid rgba(0,0,0,.08); }
  * bottom of the panel. Smaller pips fit all three, which matters: seeing the
  * tanks you have not opened yet is half of what the display is for. */
 @media (max-width: 560px) {
+  .aq-coach { padding: .6rem .7rem .65rem; }
+  .aq-coach p { font-size: .8rem; line-height: 1.45; }
+
   /* The wheel, the air and the dice will not sit in one row on a phone: the
    * dice ran off the right edge and the choice card landed on top of the
    * tanks. Wheel and air share the first line, the roll takes the second. */

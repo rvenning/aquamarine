@@ -10,8 +10,6 @@ Rory Muldoon.
 > print-and-play for one family's use. It is not affiliated with, endorsed by,
 > or connected to Postmark Games. The board artwork is theirs. If you want the
 > game — and you should, it is lovely on paper — buy it from them.
->
-> Deliberately not linked from the family games hub.
 
 ## What it does
 
@@ -51,6 +49,12 @@ shelf reads as a shelf. What the computer takes over is the bookkeeping:
 - **Rules and scoring for the map you are on**, behind the ? in the header.
   Every sheet in the box scores differently, and on paper that panel is printed
   beside the board.
+- **A guided first expedition**, at the top of the map list. Twenty-one cards
+  over about ten minutes, played on the real board with the dice scripted so
+  each lesson actually comes up: buying the bigger die, what doubles are for,
+  what depth costs, and the rule nobody gets right on paper — that a new dive
+  may not touch an earlier one even at a corner. The engine is untouched; the
+  dice are forced by handing it a random source that has been told what to say.
 
 Solo rules are enforced as printed: all three dives must get below the first
 mark on the right or the expedition failed, whatever you scored. The second and
@@ -127,6 +131,12 @@ by bounding box are all correct at once.
   where the printed rank table says it should.
 - **Storage** — the log-merge rule, which is the one piece of progress that is
   not a simple "keep the better of the two".
+- **Tutorial** — the guided expedition replayed against the real engine: every
+  forced roll rolled, every gated choice looked up in the options the dice
+  module actually offers, and every square the coach points at checked to be
+  the square it means. A card that says "take the 5, it costs three breaths" is
+  only true while the dice agree, and nothing in a browser complains when they
+  stop.
 
 ## Running it
 
@@ -140,6 +150,7 @@ expedition. Progress writes are suppressed while it is on.
     js/engine/     the rules: board, shapes, dice, state, scoring
     js/engine/rules/   one module per map; map1 is the base game
     js/render/     drawing the sheet
+    js/tutorial.js the guided first expedition
     data/          extracted boards, one per map
     assets/sprites/ the ~50 symbol sprites the board is drawn from (424KB)
     tools/         the extraction pipeline and its labels
