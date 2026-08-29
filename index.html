@@ -24,7 +24,7 @@
   <p class="aq-credit">
     An unofficial adaptation of the print-and-play by
     <strong>Postmark Games</strong> — designed by Matthew Dunstan and Rory
-    Muldoon. Not affiliated with or endorsed by them.
+    Muldoon.
   </p>
 </div>
 
@@ -48,6 +48,7 @@
   <header class="aq-bar">
     <button class="btn btn-grey btn-back" data-screen="maps">←</button>
     <span class="aq-mapname" id="aq-mapname"></span>
+    <button class="btn btn-grey aq-icon-btn" id="btn-help" title="Rules and scoring for this map">?</button>
     <span class="aq-score" id="aq-score">0</span>
   </header>
 
@@ -57,23 +58,31 @@
   </div>
 
   <div class="aq-hud">
-    <div class="aq-hud-left">
-      <div class="aq-turn">
-        <span class="aq-turn-n" id="aq-turn">1</span><span class="aq-turn-of">/24</span>
-        <span class="aq-phase" id="aq-phase">☀︎ day</span>
+    <div class="aq-track">
+      <canvas id="aq-wheel" width="120" height="120"></canvas>
+      <span class="aq-phase" id="aq-phase">day</span>
+    </div>
+
+    <div class="aq-air">
+      <div class="aq-air-head">
+        <span>Air</span>
+        <span class="aq-air-left" id="aq-air-left"></span>
       </div>
       <div class="aq-tanks" id="aq-tanks"></div>
     </div>
-    <div class="aq-hud-right">
+
+    <div class="aq-roll">
       <div class="aq-dice" id="aq-dice"></div>
       <div class="aq-choices" id="aq-choices"></div>
     </div>
   </div>
 
+  <p class="aq-hint" id="aq-hint">Roll to begin</p>
+
   <div class="aq-actions">
-    <span class="aq-hint" id="aq-hint">Roll to begin</span>
-    <button class="btn btn-grey" id="btn-surface" hidden>Surface early</button>
-    <button class="btn btn-green" id="btn-roll">Roll the dice</button>
+    <button class="btn btn-grey" id="btn-undo" hidden>Undo</button>
+    <button class="btn btn-grey" id="btn-surface" hidden>Surface</button>
+    <button class="btn btn-green" id="btn-roll">Roll</button>
   </div>
 </div>
 
@@ -99,6 +108,7 @@
 </div>
 
 <div class="modal" id="modal-rules"><div class="modal-card" id="aq-rules-body"></div></div>
+<div class="modal" id="modal-help"><div class="modal-card aq-help-card" id="aq-help-body"></div></div>
 <div class="modal" id="modal-bonus">
   <div class="modal-card">
     <h3>Shipwreck explored</h3>
@@ -127,7 +137,9 @@
 <script src="js/engine/rules/map3.js"></script>
 <script src="js/engine/rules/map4.js"></script>
 <script src="js/engine/rules/map5.js"></script>
+<script src="js/help.js"></script>
 <script src="js/render/sprites.js"></script>
+<script src="js/render/wheel.js"></script>
 <script src="js/render/board.js"></script>
 <script src="js/maps.js"></script>
 <script src="js/main.js"></script>

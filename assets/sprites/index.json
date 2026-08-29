@@ -184,6 +184,11 @@
     "h": 91,
     "from": "cut:map3"
   },
+  "research": {
+    "w": 57,
+    "h": 57,
+    "from": "cut:map2"
+  },
   "penguin": {
     "w": 94,
     "h": 202,

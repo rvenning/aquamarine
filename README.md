@@ -42,6 +42,15 @@ shelf reads as a shelf. What the computer takes over is the bookkeeping:
 - **A logbook** per map: a high-score table across everyone who plays on this
   device (and across the family's devices when Firestore is reachable), plus
   every previous expedition with its score, rank and medal.
+- **The turn wheel**, as printed: 24 ticks, half day and half night, filling in
+  behind you. A die at setup decides where you join it, and that is what decides
+  how your game splits between daylight and dark.
+- **Air crossed off** breath by breath, the way a pencil would.
+- **Undo** for the last box, because a mis-drag on a screen is not the same
+  thing as a considered pencil line.
+- **Rules and scoring for the map you are on**, behind the ? in the header.
+  Every sheet in the box scores differently, and on paper that panel is printed
+  beside the board.
 
 Solo rules are enforced as printed: all three dives must get below the first
 mark on the right or the expedition failed, whatever you scored. The second and

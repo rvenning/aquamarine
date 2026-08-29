@@ -23,6 +23,9 @@
     painted: null,      // Set of cells, for the freeform shape doubles allow
     bonuses: [],        // shipwreck bonuses circled this game
     progress: null,     // whatever this map tracks of its own
+    wheel: null,        // the day/night turn track
+    undo: null,         // snapshot of the state before the last box
+    canUndo: false,
   };
 
   /* ─────────────────────────────────────────── profiles and map choice ── */
@@ -103,18 +106,26 @@
     app.render = AQ.Render.create(el("aq-board"), app.board);
     app.render.resize();
     app.render.start();
+    app.wheel = AQ.Wheel.create(el("aq-wheel"),
+      Object.assign({ turns: app.state.turns }, app.state.wheel));
+    app.wheel.resize();
+    app.canUndo = false;
+    app.undo = null;
     bindBoard();
     refresh();
-    UI.toast("Turn wheel enters at " + app.state.startFace);
+    hint("Roll to begin. You join the turn wheel at " + app.state.startFace + ".");
   }
 
   /* ─────────────────────────────────────────────────────────── the HUD ── */
 
   function refresh() {
     const s = app.state;
-    el("aq-turn").textContent = Math.min(s.turn + 1, s.turns);
-    el("aq-phase").textContent = AQ.State.isDay(s) ? "☀ day" : "☾ night";
-    el("aq-phase").className = "aq-phase " + (AQ.State.isDay(s) ? "is-day" : "is-night");
+    const day = AQ.State.isDay(s);
+    el("aq-phase").textContent = day ? "day" : "night";
+    el("aq-phase").className = "aq-phase " + (day ? "is-day" : "is-night");
+    if (app.wheel) app.wheel.set({
+      tick: AQ.State.tickOf(s), played: Math.min(s.turn, s.turns), startTick: s.startTick,
+    });
     renderTanks();
     renderDice();
     el("aq-score").textContent = app.rules.score(s, app.bonuses, app.progress).total;
@@ -131,10 +142,17 @@
 
     el("btn-roll").hidden = !!s.roll || s.over;
     el("btn-surface").hidden = !s.roll || !s.diveCells[s.dive].length || s.dive >= AQ.State.DIVES - 1;
+    el("btn-undo").hidden = !app.canUndo || s.over;
     if (s.over) finish();
   }
 
-  function renderTanks() {
+  // Air, crossed off the way a pencil would.
+  //
+  // `spentBefore` is what the tanks looked like a moment ago, so a breath just
+  // taken can draw its cross on rather than appearing already struck. Without
+  // that, spending three air to reach something deep is a silent change to a
+  // row of dots.
+  function renderTanks(spentBefore) {
     const s = app.state;
     const wrap = el("aq-tanks");
     wrap.innerHTML = "";
@@ -143,21 +161,35 @@
       tank.className = "aq-tank" + (d === s.dive ? " is-current" : "") + (d < s.dive ? " is-done" : "");
       for (let i = 0; i < capacity; i++) {
         const pip = document.createElement("i");
-        if (i < s.spent[d]) pip.className = "spent";
+        pip.className = "aq-pip";
+        if (i < s.spent[d]) {
+          pip.classList.add("spent");
+          if (spentBefore && i >= (spentBefore[d] || 0)) pip.classList.add("just");
+        }
         tank.appendChild(pip);
       }
       wrap.appendChild(tank);
     });
+
+    const left = AQ.State.airLeft(s);
+    const label = el("aq-air-left");
+    label.textContent = s.over ? "—" : left + " left";
+    label.className = "aq-air-left" + (left === 0 ? " is-out" : left <= 3 ? " is-low" : "");
   }
 
-  function renderDice() {
+  function renderDice(rolling) {
     const s = app.state;
-    el("aq-dice").innerHTML = s.roll
-      ? s.roll.map((d) => '<span class="aq-die">' + d + "</span>").join("")
-      : "";
+    const dice = el("aq-dice");
+    if (!s.roll) { dice.innerHTML = ""; }
+    else {
+      const doubled = s.roll[0] === s.roll[1];
+      dice.innerHTML = s.roll.map((d) =>
+        '<span class="aq-die' + (rolling ? " rolling" : " settled") +
+        (doubled && !rolling ? " is-double" : "") + '">' + d + "</span>").join("");
+    }
     const wrap = el("aq-choices");
     wrap.innerHTML = "";
-    if (!s.roll) return;
+    if (!s.roll || rolling) return;
     for (const option of AQ.State.options(s)) {
       const button = document.createElement("button");
       button.className = "aq-choice" + (app.option && app.option.id === option.id ? " is-picked" : "");
@@ -168,6 +200,60 @@
     }
   }
 
+  // Tumble the dice before they settle.
+  //
+  // The numbers really do change while it runs -- a die spinning on one face
+  // is a loading spinner, not a roll -- and the roll is only committed to the
+  // game state at the end, so what settles is what was rolled.
+  //
+  // Driven by requestAnimationFrame against the wall clock, not a chain of
+  // setTimeouts. A hidden tab clamps timers to about a second each, which
+  // turned a two-thirds-of-a-second roll into one that was still tumbling
+  // twelve seconds later; rAF simply does not fire while hidden, and the
+  // elapsed-time check means the roll is already over when the tab comes back.
+  const ROLL_MS = 620;
+
+  function rollWithFlourish(onDone) {
+    const s = app.state;
+    const dice = el("aq-dice");
+    GK.Sfx.click();
+    const started = performance.now();
+    let last = 0;
+    let done = false;
+
+    // Whichever gets there first finishes the roll, once.
+    //
+    // requestAnimationFrame does not fire at all while the tab is in the
+    // background, so a player who switches away mid-roll would come back to a
+    // game frozen on "Rolling..." with no dice and the roll button hidden. The
+    // timeout is the guarantee that the turn always arrives; rAF is what makes
+    // it look like anything while they are watching.
+    const settle = () => {
+      if (done) return;
+      done = true;
+      AQ.State.rollDice(s);
+      renderDice(false);
+      GK.Sfx.coin();
+      onDone();
+    };
+
+    const frame = (now) => {
+      if (done) return;
+      const t = Math.min(1, (now - started) / ROLL_MS);
+      // Faces change quickly at first and slow as the dice come to rest.
+      const gap = 45 + t * t * 150;
+      if (now - last > gap) {
+        last = now;
+        const fake = [1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)];
+        dice.innerHTML = fake.map((d) => '<span class="aq-die rolling">' + d + "</span>").join("");
+      }
+      if (t < 1) requestAnimationFrame(frame); else settle();
+    };
+
+    el("aq-choices").innerHTML = "";
+    requestAnimationFrame(frame);
+    setTimeout(settle, ROLL_MS + 90);
+  }
   /* ──────────────────────────────────────────── choosing and drawing ──── */
 
   function chooseOption(option) {
@@ -184,8 +270,8 @@
     app.render.state.preview = null;
     renderDice();
     hint(option.freeform
-      ? "Doubles: paint any " + option.size + " connected squares"
-      : "Drag out a box of " + option.size);
+      ? "Doubles — tap any " + option.size + " connected squares."
+      : "Drag out a box of " + option.size + ".");
     app.render.draw();
   }
 
@@ -210,21 +296,83 @@
     if (!cells || !cells.length) { app.render.state.preview = null; app.render.draw(); return; }
     const why = AQ.Shapes.reject(app.board, cells, placementOpts());
     app.render.state.preview = { cells, ok: !why };
-    hint(why ? capitalise(why) : costLine(cells));
+    hint(why ? capitalise(why) : costLine(cells), !!why);
     app.render.draw();
   }
 
   function costLine(cells) {
     const cost = AQ.State.costOf(app.state, cells, app.option);
-    if (cost.free) return "Air bubble — this turn is free";
-    if (!cost.air) return "Costs nothing";
-    return "Costs " + cost.air + " air (" + cost.reasons.join(", ") + ")";
+    if (cost.free) return "Air bubble — this turn is free.";
+    if (!cost.air) return "Costs nothing.";
+    return "Costs " + cost.air + " air — " + cost.reasons.join(", ") + ".";
   }
 
   const capitalise = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-  const hint = (text) => { el("aq-hint").textContent = text; };
+
+  // One line, always. The hint used to sit inside the button row, where "Roll
+  // for the next turn" wrapped onto four lines in the landscape column and
+  // shoved the buttons around -- and it was telling the player to press the
+  // one button already lit. It now reports what the turn cost instead.
+  function hint(text, bad) {
+    const box = el("aq-hint");
+    box.textContent = text;
+    box.className = "aq-hint" + (bad ? " is-bad" : "");
+  }
+
+  function turnSummary(cost) {
+    const s = app.state;
+    if (s.dive !== app.undo.dive) return "Tank empty — surfacing. Dive " + (s.dive + 1) + " next.";
+    if (cost && cost.free) return "Air bubble — that turn was free.";
+    if (cost && cost.air) return "Cost " + cost.air + " air. " + AQ.State.airLeft(s) + " left in the tank.";
+    return "No air spent. " + AQ.State.airLeft(s) + " left in the tank.";
+  }
+
+  // A snapshot of everything one turn changes, so it can be put back.
+  //
+  // Drawing a box is the whole game and there is no way to un-draw one on
+  // paper, but on paper you can also see the box forming under your pencil.
+  // Here a mis-drag is committed the moment it is legal, so one step back is
+  // the difference between a slip and a ruined expedition.
+  function snapshot() {
+    const s = app.state;
+    return {
+      turn: s.turn, dive: s.dive, roll: s.roll && s.roll.slice(),
+      spent: s.spent.slice(),
+      diveCells: s.diveCells.map((c) => c.slice()),
+      lastShape: s.lastShape && s.lastShape.slice(),
+      occupied: new Set(s.occupied),
+      previousDives: new Set(s.previousDives),
+      history: s.history.slice(),
+      over: s.over,
+      progress: app.progress ? JSON.parse(JSON.stringify(app.progress)) : null,
+      bonuses: app.bonuses.slice(),
+      marks: app.render.state.marks.slice(),
+    };
+  }
+
+  function restore(snap) {
+    const s = app.state;
+    Object.assign(s, {
+      turn: snap.turn, dive: snap.dive, roll: snap.roll && snap.roll.slice(),
+      spent: snap.spent.slice(),
+      diveCells: snap.diveCells.map((c) => c.slice()),
+      lastShape: snap.lastShape && snap.lastShape.slice(),
+      occupied: new Set(snap.occupied),
+      previousDives: new Set(snap.previousDives),
+      history: snap.history.slice(),
+      over: snap.over,
+    });
+    if (snap.progress) Object.assign(app.progress, snap.progress);
+    app.bonuses = snap.bonuses.slice();
+    app.render.state.marks = snap.marks.slice();
+    app.option = null;
+    app.painted = null;
+    app.render.state.legal = null;
+    app.render.state.preview = null;
+  }
 
   function commit(cells) {
+    app.undo = snapshot();
     const before = AQ.Scoring.collect(app.state).caught.length;
     const result = AQ.State.place(app.state, cells, app.option);
     if (!result.ok) { UI.toast(capitalise(result.why)); return; }
@@ -236,8 +384,10 @@
     markSheet();
     flourish(before);
     offerWreckBonus();
+    app.canUndo = true;
     refresh();
-    if (!app.state.over) hint("Roll for the next turn");
+    renderTanks(app.undo.spent);
+    if (!app.state.over) hint(turnSummary(result.cost));
   }
 
   // Ring whatever this box just caught, and say what it was worth. On paper
@@ -311,7 +461,7 @@
     };
 
     canvas.onpointerdown = (event) => {
-      if (!app.option) { hint("Choose which die to take first"); return; }
+      if (!app.option) { hint("Choose which die to take first.", true); return; }
       const cell = at(event);
       if (cell === null) return;
       canvas.setPointerCapture(event.pointerId);
@@ -362,14 +512,35 @@
   /* ───────────────────────────────────────────────── turns and endings ── */
 
   el("btn-roll").onclick = () => {
-    AQ.State.rollDice(app.state);
     app.option = null;
     app.render.state.legal = null;
+    app.canUndo = false;
+    el("btn-roll").hidden = true;
+    el("btn-undo").hidden = true;
+    hint("Rolling…");
+    rollWithFlourish(() => {
+      refresh();
+      const options = AQ.State.options(app.state);
+      if (options.length === 1) chooseOption(options[0]);
+      else hint("Take the low die free, or pay for the high one.");
+    });
+  };
+
+  el("btn-undo").onclick = () => {
+    if (!app.undo) return;
+    restore(app.undo);
+    app.canUndo = false;
+    app.undo = null;
     GK.Sfx.click();
     refresh();
-    const options = AQ.State.options(app.state);
-    if (options.length === 1) chooseOption(options[0]);
-    else hint("Take the low die or pay for the high one");
+    hint("Turn taken back. Choose a die again.");
+  };
+
+  // The rules for THIS map, and how it scores. Every sheet in the box scores
+  // differently, and on paper that panel is printed beside the board.
+  el("btn-help").onclick = () => {
+    el("aq-help-body").innerHTML = AQ.Help.html(app.mapId, app.board);
+    UI.openModal("modal-help");
   };
 
   el("btn-surface").onclick = () => {
@@ -378,12 +549,36 @@
     app.option = null;
     app.render.state.legal = null;
     UI.toast("Surfaced — the rest of the tank is gone");
+    app.canUndo = false;
     refresh();
+    hint("Dive " + (app.state.dive + 1) + " starts from a boat.");
   };
 
   el("btn-again").onclick = () => startGame(app.mapId);
   el("btn-logbook").onclick = () => { renderLogbook(); UI.showScreen("logbook"); };
   el("btn-rules").onclick = () => { el("aq-rules-body").innerHTML = RULES_HTML; UI.openModal("modal-rules"); };
+
+  // Which sprite stands for a scoring category. The result sheet is a list of
+  // creatures, and a list of creatures should have the creatures on it -- a
+  // player who has just finished a dive wants to see what they caught, not
+  // read a table of category names.
+  const SCORE_ICON = {
+    fish: "fish", coral: "coral-orange", jellyfish: "jellyfish",
+    stingray: "stingray", cuttlefish: "cuttlefish", beacon: "beacon",
+    flag: "flag", wreck: "wreck1", shark: "shark", squid: "squid1",
+    research: "research", camera: "camera", krill: "krill", penguin: "penguin",
+    vent: "vent", "glass-squid": "glass-squid", angler: "angler",
+    eel: "eel", nautilus: "nautilus", fossil: "fossil-ammonite",
+    outpost: "outpost", prey: "prey",
+  };
+
+  // Map 2's shoals are banner fish and Map 3's are surgeonfish; the sprite
+  // should be the one actually printed on the sheet being played.
+  function iconFor(key, mapId) {
+    if (key === "fish" && mapId === "map2") return "fish-banner";
+    if (key === "fish" && mapId === "map3") return "prey";
+    return SCORE_ICON[key];
+  }
 
   function finish() {
     const result = app.rules.score(app.state, app.bonuses, app.progress);
@@ -397,27 +592,67 @@
       depths: result.solo.depths,
       breakdown: result.lines.map((l) => ({ key: l.key, points: l.points })),
     };
-    Storage.logDive(app.profile.id, app.mapId, entry);
+    const record = Storage.logDive(app.profile.id, app.mapId, entry);
+    const best = record && record.best === result.total && record.plays > 1;
 
     el("aq-result-map").textContent = AQ.Maps.info(app.mapId).name;
-    el("aq-result").innerHTML =
-      '<div class="aq-verdict ' + (result.solo.passed ? "is-pass" : "is-fail") + '">' +
-        '<span class="aq-total">' + result.total + "</span>" +
-        "<strong>" + (result.rank || "") + "</strong>" +
-        "<em>" + verdictLine(result.solo) + "</em>" +
-      "</div>" +
-      '<table class="aq-breakdown">' +
-        result.lines.map((l) =>
-          "<tr><th>" + l.label + "</th><td>" + l.points + "</td><td>" + (l.detail || "") + "</td></tr>").join("") +
-      "</table>";
+    el("aq-result").innerHTML = resultHtml(result, best);
     UI.showScreen("result");
+    if (result.solo.passed) GK.Sfx.coin();
+  }
+
+  function resultHtml(result, isBest) {
+    const medal = result.solo.medal;
+    const rows = result.lines.map((line) => {
+      const icon = iconFor(line.key, app.mapId);
+      const sign = line.points > 0 ? "is-plus" : line.points < 0 ? "is-minus" : "is-zero";
+      return '<li class="aq-row ' + sign + '">' +
+        '<span class="aq-row-icon">' +
+          (icon ? '<img src="assets/sprites/' + icon + '.webp" alt="">' : "") +
+        "</span>" +
+        '<span class="aq-row-body"><strong>' + line.label + "</strong>" +
+        '<em>' + (line.detail || "") + "</em></span>" +
+        '<span class="aq-row-points">' + (line.points > 0 ? "+" : "") + line.points + "</span>" +
+        "</li>";
+    }).join("");
+
+    // The three dives, drawn as how deep each one got against the marks it had
+    // to pass. It is the solo game's whole win condition and it was previously
+    // a sentence.
+    const marks = app.board.diveMarks;
+    const depths = result.solo.depths;
+    const dives = depths.map((depth, i) => {
+      const reached = marks.length ? marks.filter((m) => depth >= m).length : 0;
+      const failed = marks.length && depth < marks[0];
+      const pct = depth < 0 ? 0 : Math.round(((depth + 1) / app.board.rows) * 100);
+      return '<div class="aq-dive-bar' + (failed ? " is-failed" : "") + '">' +
+        "<span>Dive " + (i + 1) + "</span>" +
+        '<div class="aq-depth"><i style="height:' + pct + '%"></i></div>' +
+        "<b>" + (depth < 0 ? "not taken" : "row " + depth) + "</b>" +
+        (marks.length ? "<em>" + reached + "/" + marks.length + " marks</em>" : "") +
+        "</div>";
+    }).join("");
+
+    return [
+      '<div class="aq-verdict ' + (result.solo.passed ? "is-pass" : "is-fail") + '">',
+      medal ? '<span class="aq-big-medal aq-medal-' + medal + '"></span>' : "",
+      '<span class="aq-total">' + result.total + "</span>",
+      "<strong>" + (result.rank || "") + "</strong>",
+      isBest ? '<span class="aq-pb">a personal best</span>' : "",
+      "<em>" + verdictLine(result.solo) + "</em>",
+      "</div>",
+      marks.length || depths.some((d) => d >= 0) ? '<div class="aq-dives">' + dives + "</div>" : "",
+      '<ul class="aq-rows">' + rows + "</ul>",
+      '<p class="aq-ranks-note">' + AQ.Help.RANKS + "</p>",
+    ].join("");
   }
 
   function verdictLine(solo) {
     if (!solo.passed) return "The expedition failed — every dive must pass the first mark";
     if (solo.medal === "gold") return "Gold: all three dives reached the deepest mark";
     if (solo.medal === "silver") return "Silver: all three dives reached the second mark";
-    return "All three dives passed the first mark";
+    if (solo.medal === "bronze") return "All three dives passed the first mark";
+    return "Expedition complete";
   }
 
   function renderLogbook() {
@@ -472,9 +707,14 @@
   ].join(" ");
 
   document.addEventListener("click", (event) => {
-    const target = event.target.closest("[data-screen]");
-    if (target) UI.showScreen(target.dataset.screen);
+    const screen = event.target.closest("[data-screen]");
+    if (screen) UI.showScreen(screen.dataset.screen);
+    const close = event.target.closest("[data-close]");
+    if (close) UI.closeModal(close.dataset.close);
   });
+
+  // The wheel and the board both need re-measuring when the window changes.
+  window.addEventListener("resize", () => { if (app.wheel) app.wheel.resize(); });
 
   // Developer tools behind ?debug=1. Playing 24 turns by hand to see the
   // result screen is the kind of check that gets skipped, so the panel can

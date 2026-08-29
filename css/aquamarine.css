@@ -53,6 +53,15 @@ body {
 }
 .aq-credit strong { color: rgba(234,246,244,.8); }
 
+/* The profile roster.
+ *
+ * gamekit lays the cards out; all this does is stop them touching. They were
+ * flush against each other, so "Rob" and "New diver" read as one control. */
+.gk-profiles {
+  display: flex; flex-direction: column; gap: .75rem;
+  align-items: center; padding: .5rem 1rem;
+}
+
 /* ── bars and headings ─────────────────────────────────────────────────── */
 
 .aq-bar {
@@ -101,7 +110,14 @@ body {
 
 /* ── the board ─────────────────────────────────────────────────────────── */
 
-.aq-board-wrap { position: relative; flex: 1; min-height: 0; }
+/* gamekit centres the children of a screen, which is right for a column of
+ * menu buttons and wrong for a board: under flex it left the board its content
+ * width, and under grid it centred it vertically in its own area -- an 860px
+ * window drew a 456px board with 170px of empty water above and below. The
+ * game screen stretches; everything else keeps the centring. */
+#screen-game.active { align-items: stretch; }
+
+.aq-board-wrap { position: relative; flex: 1; min-height: 0; width: 100%; }
 #aq-board { display: block; width: 100%; height: 100%; touch-action: none; }
 .aq-zoom {
   position: absolute; right: .6rem; bottom: .6rem;
@@ -112,38 +128,100 @@ body {
 /* ── HUD ───────────────────────────────────────────────────────────────── */
 
 .aq-hud {
-  display: flex; gap: .8rem; align-items: flex-start; justify-content: space-between;
-  padding: .5rem .8rem 0;
-  background: rgba(0,0,0,.24);
+  display: flex; gap: 1rem; align-items: center;
+  padding: .6rem .8rem;
+  background: rgba(0,0,0,.28);
 }
-.aq-hud-left { display: flex; flex-direction: column; gap: .35rem; }
-.aq-hud-right { display: flex; flex-direction: column; gap: .4rem; align-items: flex-end; }
 
-.aq-turn { display: flex; align-items: baseline; gap: .2rem; }
-.aq-turn-n { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.aq-turn-of { color: rgba(234,246,244,.5); font-size: .85rem; }
-.aq-phase { margin-left: .5rem; font-size: .8rem; padding: .1rem .5rem; border-radius: 999px; }
-.aq-phase.is-day { background: rgba(255,206,59,.2); color: #ffce3b; }
-.aq-phase.is-night { background: rgba(143,123,216,.22); color: var(--aq-night); }
-
-/* Three tanks of twelve, laid out like the pips printed on the sheet. */
-.aq-tanks { display: flex; gap: .5rem; }
-.aq-tank { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; opacity: .4; }
-.aq-tank.is-current { opacity: 1; }
-.aq-tank.is-done { opacity: .22; }
-.aq-tank i {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: transparent; border: 1.5px solid var(--aq-water);
+/* The turn track. The wheel does the work; the label under it only names the
+ * half you are in, because the wheel already shows how much of it is left. */
+.aq-track { display: flex; flex-direction: column; align-items: center; gap: .2rem; flex: none; }
+#aq-wheel { width: 68px; height: 68px; display: block; }
+.aq-phase {
+  font-size: .68rem; letter-spacing: .12em; text-transform: uppercase;
+  padding: .1rem .45rem; border-radius: 999px; font-weight: 700;
 }
-.aq-tank i.spent { background: var(--aq-water); border-color: var(--aq-water); opacity: .35; }
+.aq-phase.is-day { background: rgba(255,206,59,.18); color: #ffce3b; }
+.aq-phase.is-night { background: rgba(179,156,255,.2); color: var(--aq-night); }
 
-.aq-dice { display: flex; gap: .35rem; }
+/* Air.
+ *
+ * The first version drew three rows of 7px outlines and was genuinely hard to
+ * read — the one number a diver needs most, in the smallest type on screen.
+ * Now: a big count, a tank per dive, and every spent breath struck through the
+ * way a pencil would on the printed sheet. */
+.aq-air { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .3rem; }
+.aq-air-head {
+  display: flex; align-items: baseline; gap: .5rem;
+  font-size: .68rem; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(234,246,244,.55); font-weight: 700;
+}
+.aq-air-left { font-size: 1.15rem; letter-spacing: 0; text-transform: none; color: var(--aq-ink); }
+.aq-air-left.is-low { color: #ff8f6b; }
+.aq-air-left.is-out { color: #ff6b6b; }
+
+.aq-tanks { display: flex; gap: .5rem; flex-wrap: wrap; }
+.aq-tank {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;
+  padding: 4px; border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,.13);
+  opacity: .45; transition: opacity .2s, border-color .2s;
+}
+.aq-tank.is-current { opacity: 1; border-color: rgba(255,206,59,.55); background: rgba(255,206,59,.07); }
+.aq-tank.is-done { opacity: .3; }
+
+.aq-pip {
+  width: 13px; height: 13px; border-radius: 50%;
+  border: 1.5px solid var(--aq-water);
+  position: relative;
+}
+/* A crossed-off breath, drawn as two strokes rather than a filled dot, so it
+ * reads the way the printed sheet does. */
+.aq-pip.spent { border-color: rgba(255,255,255,.25); }
+.aq-pip.spent::before, .aq-pip.spent::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 15px; height: 2px; margin: -1px 0 0 -7.5px;
+  background: #ff8f6b; border-radius: 1px;
+}
+.aq-pip.spent::before { transform: rotate(45deg); }
+.aq-pip.spent::after { transform: rotate(-45deg); }
+/* Newly crossed pips draw themselves on, which is what makes spending air feel
+ * like something happening rather than a number changing. */
+.aq-pip.just::before { animation: aq-strike .22s ease-out both; }
+.aq-pip.just::after { animation: aq-strike .22s .1s ease-out both; }
+@keyframes aq-strike {
+  from { transform-origin: left center; width: 0; opacity: 0; }
+  to { opacity: 1; }
+}
+.aq-pip.just::before { transform: rotate(45deg); }
+.aq-pip.just::after { transform: rotate(-45deg); }
+
+
+
+/* Dice. */
+.aq-roll { display: flex; flex-direction: column; gap: .45rem; align-items: flex-end; flex: none; }
+.aq-dice { display: flex; gap: .4rem; min-height: 2.2rem; }
 .aq-die {
-  width: 2rem; height: 2rem; border-radius: 8px;
+  width: 2.2rem; height: 2.2rem; border-radius: 9px;
   background: #fff; color: var(--aq-deep);
   display: grid; place-items: center;
-  font-weight: 800; font-size: 1.1rem;
+  font-weight: 800; font-size: 1.2rem;
+  box-shadow: 0 2px 0 rgba(0,0,0,.3);
 }
+/* Tumbling, then a settle. The numbers are swapped in JS while this runs, so
+ * the die really is changing rather than spinning on one face. */
+.aq-die.rolling { animation: aq-tumble .09s linear infinite; }
+@keyframes aq-tumble {
+  0%   { transform: rotate(-14deg) translateY(0) scale(1); }
+  50%  { transform: rotate(12deg) translateY(-6px) scale(1.06); }
+  100% { transform: rotate(-14deg) translateY(0) scale(1); }
+}
+.aq-die.settled { animation: aq-land .34s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes aq-land {
+  0%   { transform: scale(1.35) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.aq-die.is-double { background: #ffce3b; }
 
 .aq-choices { display: flex; gap: .4rem; }
 .aq-choice {
@@ -157,33 +235,148 @@ body {
 .aq-choice span { display: flex; flex-direction: column; font-size: .72rem; line-height: 1.25; text-align: left; }
 .aq-choice em { font-style: normal; color: rgba(234,246,244,.55); }
 
+/* The hint gets its own full-width line.
+ *
+ * It used to sit inside the button row, which in the landscape layout is a
+ * 22rem column — so "Roll for the next turn" wrapped onto four lines beside
+ * the buttons and pushed them about. One line, its own row, and it can say
+ * what it likes. */
+.aq-hint {
+  margin: 0; padding: .4rem .9rem;
+  font-size: .84rem; line-height: 1.35;
+  color: rgba(234,246,244,.8);
+  background: rgba(0,0,0,.28);
+  min-height: 1.35em;
+}
+.aq-hint.is-bad { color: #ff9a9a; }
+
+/* The turn buttons.
+ *
+ * In the landscape layout these share a 23rem column, and "Roll the dice" was
+ * wrapping onto three lines while the help button was pushed off the edge.
+ * Short labels, no wrapping, and the help moved up beside the map name where
+ * it belongs. */
 .aq-actions {
-  display: flex; align-items: center; gap: .6rem;
+  display: flex; align-items: center; gap: .5rem; justify-content: flex-end;
   padding: .55rem .8rem;
   padding-bottom: max(.55rem, env(safe-area-inset-bottom));
-  background: rgba(0,0,0,.24);
+  background: rgba(0,0,0,.28);
 }
-.aq-hint { flex: 1; font-size: .82rem; color: rgba(234,246,244,.75); }
+.aq-actions .btn { white-space: nowrap; }
+#btn-roll { min-width: 7rem; }
+.aq-icon-btn {
+  width: 2.1rem; min-width: 2.1rem; padding: .3rem 0;
+  font-weight: 800; font-size: 1rem; flex: none;
+}
 
 /* ── result ────────────────────────────────────────────────────────────── */
 
-.aq-result { padding: 1rem .9rem; overflow-y: auto; }
-.aq-verdict { text-align: center; padding: 1.2rem 0 1.4rem; }
-.aq-total { display: block; font-size: 3.4rem; font-weight: 800; line-height: 1; color: var(--aq-dive1); }
-.aq-verdict strong { display: block; margin-top: .3rem; letter-spacing: .14em; text-transform: uppercase; font-size: .9rem; }
-.aq-verdict em { display: block; margin-top: .5rem; font-style: normal; font-size: .82rem; color: rgba(234,246,244,.65); }
-.aq-verdict.is-fail .aq-total { color: #e94f4f; }
+/* The scoresheet.
+ *
+ * It was a bare table of category names on an otherwise empty page: correct,
+ * and no reason to look at it. What a player wants after a dive is to see what
+ * they caught, so every line carries the creature it scored — the same sprite
+ * that was on the board a moment ago — and the three dives are drawn as depth
+ * gauges against the marks they had to pass. */
+.aq-result {
+  flex: 1; min-height: 0;
+  padding: 1rem .9rem 2rem;
+  overflow-y: auto;
+  width: min(46rem, 100%);
+  margin: 0 auto;
+}
 
-.aq-breakdown { width: 100%; border-collapse: collapse; font-size: .85rem; }
-.aq-breakdown tr { border-top: 1px solid rgba(255,255,255,.08); }
-.aq-breakdown th { text-align: left; font-weight: 600; padding: .5rem .4rem .5rem 0; white-space: nowrap; }
-.aq-breakdown td { padding: .5rem .4rem; }
-.aq-breakdown td:first-of-type { font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; width: 3ch; }
-.aq-breakdown td:last-child { color: rgba(234,246,244,.55); font-size: .78rem; }
+.aq-verdict { text-align: center; padding: 1.4rem 0 1.6rem; }
+.aq-total { display: block; font-size: 4rem; font-weight: 800; line-height: 1; color: var(--aq-dive1); }
+.aq-verdict strong {
+  display: block; margin-top: .35rem;
+  letter-spacing: .18em; text-transform: uppercase; font-size: .95rem;
+}
+.aq-verdict em {
+  display: block; margin-top: .6rem; font-style: normal;
+  font-size: .84rem; color: rgba(234,246,244,.65);
+}
+.aq-verdict.is-fail .aq-total { color: #ff6b6b; }
+
+.aq-big-medal {
+  display: block; width: 3rem; height: 3rem; margin: 0 auto .7rem;
+  border-radius: 50%; border: 3px solid rgba(255,255,255,.35);
+}
+.aq-big-medal.aq-medal-gold { background: radial-gradient(circle at 35% 30%, #fff3bf, #ffce3b 55%, #c99a1a); }
+.aq-big-medal.aq-medal-silver { background: radial-gradient(circle at 35% 30%, #fff, #cfd8dd 55%, #8f9ba3); }
+.aq-big-medal.aq-medal-bronze { background: radial-gradient(circle at 35% 30%, #f0c294, #c98a4b 55%, #8c5a2b); }
+
+.aq-pb {
+  display: inline-block; margin-top: .5rem;
+  padding: .15rem .6rem; border-radius: 999px;
+  background: rgba(255,206,59,.18); color: #ffce3b;
+  font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700;
+}
+
+/* The three dives, as depth gauges. */
+.aq-dives { display: flex; gap: .7rem; justify-content: center; margin-bottom: 1.4rem; }
+.aq-dive-bar {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem;
+  font-size: .72rem; color: rgba(234,246,244,.6);
+}
+.aq-dive-bar > span { letter-spacing: .1em; text-transform: uppercase; font-weight: 700; }
+.aq-dive-bar b { font-size: .78rem; color: var(--aq-ink); font-weight: 700; }
+.aq-dive-bar em { font-style: normal; }
+.aq-dive-bar.is-failed b, .aq-dive-bar.is-failed em { color: #ff8f6b; }
+.aq-depth {
+  width: 2.4rem; height: 4.5rem; border-radius: 7px;
+  background: linear-gradient(#7ed8cc, #12394a 70%, #071a23);
+  position: relative; overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,.16);
+}
+.aq-depth i {
+  position: absolute; left: 0; right: 0; top: 0;
+  background: rgba(255,206,59,.55);
+  border-bottom: 2px solid #ffce3b;
+}
+
+/* One line per scoring category, with its creature. */
+.aq-rows { list-style: none; margin: 0; padding: 0; }
+.aq-row {
+  display: flex; align-items: center; gap: .8rem;
+  padding: .5rem .7rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,.05);
+}
+.aq-row + .aq-row { margin-top: .35rem; }
+.aq-row.is-zero { opacity: .5; }
+.aq-row-icon {
+  width: 2.6rem; height: 2.6rem; flex: none;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.06); border-radius: 10px;
+}
+.aq-row-icon img { max-width: 84%; max-height: 84%; display: block; }
+.aq-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.aq-row-body strong { font-size: .92rem; }
+.aq-row-body em {
+  font-style: normal; font-size: .76rem; color: rgba(234,246,244,.55);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.aq-row-points {
+  font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.15rem;
+  min-width: 3ch; text-align: right;
+}
+.aq-row.is-plus .aq-row-points { color: #7fe6a0; }
+.aq-row.is-minus .aq-row-points { color: #ff8f6b; }
+.aq-row.is-zero .aq-row-points { color: rgba(234,246,244,.4); }
+
+.aq-ranks-note {
+  margin: 1.2rem 0 0; text-align: center;
+  font-size: .74rem; color: rgba(234,246,244,.45);
+}
 
 /* ── logbook ───────────────────────────────────────────────────────────── */
 
-.aq-logbook { padding: 1rem .9rem; overflow-y: auto; }
+.aq-logbook {
+  flex: 1; min-height: 0;
+  padding: 1rem .9rem; overflow-y: auto;
+  width: min(46rem, 100%); margin: 0 auto;
+}
 .aq-log-map { margin-bottom: 1.6rem; }
 .aq-log-map h3 { margin: 0 0 .5rem; font-size: .95rem; letter-spacing: .1em; text-transform: uppercase; color: var(--aq-water); }
 .aq-scores { width: 100%; border-collapse: collapse; font-size: .85rem; margin-bottom: .6rem; }
@@ -198,6 +391,21 @@ body {
 
 /* ── modals ────────────────────────────────────────────────────────────── */
 
+/* gamekit calls its modal card ".sheet"; this game uses ".modal-card", which
+ * gamekit has no rule for -- so both modals were rendering as unstyled text
+ * straight over the board. Defined here rather than renamed, because .sheet is
+ * a 380px centred dialogue and the rules panel is a document. */
+.modal-card {
+  background: #fff; color: var(--gk-ink);
+  border-radius: 20px; padding: 1.4rem 1.5rem;
+  width: 100%; max-width: 34rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  text-align: left;
+}
+.modal-card h3 { margin: 0 0 .4rem; font-size: 1.25rem; }
+.modal-card p { margin: .5rem 0; line-height: 1.5; font-size: .9rem; }
+.modal-card .btn { margin-top: 1rem; }
+
 .aq-modal-sub { color: rgba(0,0,0,.55); font-size: .85rem; margin: .2rem 0 .8rem; }
 .aq-bonus-list { display: flex; flex-direction: column; gap: .4rem; }
 .aq-bonus {
@@ -210,11 +418,73 @@ body {
 /* ── wider screens: the board and the HUD side by side ─────────────────── */
 
 @media (min-width: 900px) and (orientation: landscape) {
-  #screen-game.active { display: grid; grid-template-columns: 1fr 22rem; grid-template-rows: auto 1fr auto; }
-  .aq-bar { grid-column: 1 / -1; }
-  .aq-board-wrap { grid-row: 2 / 4; }
-  .aq-hud { flex-direction: column; align-items: stretch; gap: .9rem; padding: 1rem; }
-  .aq-hud-right { align-items: stretch; }
+  /* Every cell pinned.
+   *
+   * Only the board and the two bottom rows were placed explicitly, and the HUD
+   * was left to auto-placement -- which put it in a row of its own and squashed
+   * the board to 456px of an 860px window. In a grid with a spanning item,
+   * nothing may be left to chance. */
+  #screen-game.active {
+    display: grid;
+    grid-template-columns: 1fr 23rem;
+    grid-template-rows: auto 1fr auto auto;
+  }
+  .aq-bar { grid-column: 1 / -1; grid-row: 1; }
+  .aq-board-wrap { grid-column: 1; grid-row: 2 / 5; }
+  .aq-hud { grid-column: 2; grid-row: 2; align-content: start; }
+  .aq-hud { flex-direction: column; align-items: stretch; gap: 1rem; padding: 1rem; }
+  .aq-track { flex-direction: row; gap: .7rem; align-self: center; }
+  #aq-wheel { width: 96px; height: 96px; }
+  .aq-roll { align-items: stretch; }
+  .aq-dice { justify-content: center; }
   .aq-choices { flex-direction: column; }
-  .aq-actions { grid-column: 2; }
+  .aq-hint { grid-column: 2; grid-row: 3; text-align: center; }
+  .aq-actions { grid-column: 2; grid-row: 4; }
+}
+
+/* Help and rules read as a document, not a dialogue. */
+.aq-help-card { max-height: 84vh; overflow-y: auto; }
+.aq-help-card h3 { margin: 0 0 .2rem; }
+.aq-help-card h4 {
+  margin: 1.1rem 0 .35rem; font-size: .74rem; letter-spacing: .14em;
+  text-transform: uppercase; color: #4a7f8c;
+}
+.aq-help-lead { margin: .2rem 0 0; color: rgba(0,0,0,.6); font-size: .88rem; }
+table.aq-help { width: 100%; border-collapse: collapse; font-size: .85rem; }
+table.aq-help th {
+  text-align: left; vertical-align: top; font-weight: 700;
+  padding: .35rem .6rem .35rem 0; white-space: nowrap; width: 1%;
+}
+table.aq-help td { padding: .35rem 0; line-height: 1.45; }
+table.aq-help tr + tr { border-top: 1px solid rgba(0,0,0,.08); }
+.aq-help-ranks {
+  margin: .6rem 0 0; font-size: .78rem; color: rgba(0,0,0,.55);
+  background: rgba(0,0,0,.04); padding: .4rem .55rem; border-radius: 8px;
+}
+
+/* On a phone three twelve-pip tanks will not sit beside the turn wheel at
+ * 13px a pip -- they wrapped onto a second row and the third tank fell off the
+ * bottom of the panel. Smaller pips fit all three, which matters: seeing the
+ * tanks you have not opened yet is half of what the display is for. */
+@media (max-width: 560px) {
+  /* The wheel, the air and the dice will not sit in one row on a phone: the
+   * dice ran off the right edge and the choice card landed on top of the
+   * tanks. Wheel and air share the first line, the roll takes the second. */
+  .aq-hud { gap: .6rem .7rem; padding: .5rem .6rem; flex-wrap: wrap; }
+  .aq-roll { flex: 1 0 100%; align-items: stretch; }
+  .aq-dice { justify-content: center; }
+  .aq-choices { flex-direction: row; }
+  .aq-choice { flex: 1; justify-content: center; }
+  .aq-air-head { white-space: nowrap; }
+  .aq-actions { justify-content: stretch; }
+  .aq-actions .btn { flex: 1; }
+  #aq-wheel { width: 58px; height: 58px; }
+  .aq-tanks { gap: .35rem; flex-wrap: nowrap; }
+  .aq-tank { gap: 2px; padding: 3px; }
+  .aq-pip { width: 9px; height: 9px; border-width: 1.2px; }
+  .aq-pip.spent::before, .aq-pip.spent::after {
+    width: 11px; height: 1.6px; margin: -.8px 0 0 -5.5px;
+  }
+  .aq-air-head { font-size: .62rem; }
+  .aq-air-left { font-size: 1rem; }
 }

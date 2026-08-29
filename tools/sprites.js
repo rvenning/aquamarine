@@ -71,6 +71,7 @@ const CUT = {
   // render/board.js draws it as moving water instead, which is what it is.
   angler: "map3", prey: "map3", "glass-squid": "map3", vent: "map3",
   outpost: "map3", tunnel: "map3", cable: "map3", station: "map3",
+  research: "map2",
   penguin: "map4", krill: "map4", camera: "map4",
   eel: "map5", nautilus: "map5", flare: "map5",
   "fossil-ammonite": "map5", "fossil-urchin": "map5", "fossil-bone": "map5",
