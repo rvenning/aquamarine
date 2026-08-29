@@ -55,6 +55,17 @@ shelf reads as a shelf. What the computer takes over is the bookkeeping:
 - **Rules and scoring for the map you are on**, behind the ? in the header.
   Every sheet in the box scores differently, and on paper that panel is printed
   beside the board.
+- **Which creatures the hour is paying for.** Stingrays only score in daylight
+  and cuttlefish only after dark, and on paper that rule costs you quietly: you
+  spend the air getting to a cuttlefish at noon and find out it is crossed out
+  afterwards. Here the board fades whatever is asleep, so the sheet answers "is
+  this worth enclosing right now" while you are dragging the box over it, and a
+  pair of chips under the wheel names which is which. Both come from one call to
+  the map's own rules, because the way this goes wrong is the board dimming a
+  stingray while the legend beside it says stingrays are counting. The Trench
+  states the rule differently -- its glass squid migrate rather than sleep, up
+  top by day and down in the Trench by night -- so it answers for itself and the
+  chip says *where* rather than *whether*.
 - **The artwork beside the words**, everywhere the game lists creatures: the
   scoring panel, the bonus chooser, the tracker and the result sheet all draw
   from one table in `js/icons.js`. A player halfway down an unfamiliar map is

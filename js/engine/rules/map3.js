@@ -192,5 +192,33 @@ AQ.Rules.map3 = (() => {
     };
   }
 
-  return { id: "map3", score, hooks, newProgress, trenchTop, BONUS_PAIRS, VENTS, WRECK_BONUSES: [] };
+  // The Trench states the rule differently from every other sheet: its glass
+  // squid do not sleep, they MIGRATE. By day they count in the upper map and by
+  // night in the Trench, so at every hour half of them are worth taking and the
+  // other half are worth nothing -- which is exactly the distinction the dimming
+  // is for, and it cannot be expressed as "this creature is asleep now".
+  //
+  // The predicate is the one the scorer uses: a squid pays when
+  // `entry.day === !inTrench`.
+  function hours(board, isDay) {
+    const top = trenchTop(board);
+    const dormant = new Set();
+    for (const obj of board.objects) {
+      if (obj.symbol !== "glass-squid") continue;
+      const inTrench = board.row(obj.cells[0]) >= top;
+      if (isDay !== !inTrench) dormant.add(obj.id);
+    }
+    return {
+      // `note` is what fits on the chip; `title` is the sentence, because
+      // "counting in up top right now" is not one.
+      chips: [{
+        symbol: "glass-squid", active: true,
+        note: isDay ? "up top" : "the Trench",
+        title: isDay ? "counting in the upper map right now" : "counting in the Trench right now",
+      }],
+      dormant,
+    };
+  }
+
+  return { id: "map3", score, hooks, newProgress, trenchTop, BONUS_PAIRS, VENTS, WRECK_BONUSES: [], hours };
 })();

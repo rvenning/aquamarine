@@ -138,5 +138,36 @@ AQ.Scoring = (() => {
     return name;
   }
 
-  return { SHOAL, shoal, collect, countOf, beaconPairs, flagScore, line, total, rankFor };
+  // Which creatures are counting at this hour, and which are asleep.
+  //
+  // Four of the five sheets share one rule: stingrays are day creatures and
+  // cuttlefish are night ones, and catching one at the wrong hour is not a
+  // penalty, just a waste. The Trench states it differently -- its glass squid
+  // migrate rather than sleep -- so each map answers for itself and this is the
+  // shape they all answer in.
+  //
+  //   chips    what to show under the wheel: the creature, and whether it counts
+  //   dormant  ids of the objects on the board that would score nothing now
+  //
+  // Both come from one call because they are one fact told twice, and the way
+  // that goes wrong is the two disagreeing: the board dimming a stingray while
+  // the chip beside the wheel says stingrays are counting.
+  function dayNight(board, isDay, dayFolk, nightFolk) {
+    const day = dayFolk || "stingray";
+    const night = nightFolk || "cuttlefish";
+    const dormant = new Set();
+    for (const obj of board.objects) {
+      if (obj.symbol === day && !isDay) dormant.add(obj.id);
+      if (obj.symbol === night && isDay) dormant.add(obj.id);
+    }
+    return {
+      chips: [
+        { symbol: day, active: isDay },
+        { symbol: night, active: !isDay },
+      ],
+      dormant,
+    };
+  }
+
+  return { SHOAL, shoal, collect, countOf, beaconPairs, flagScore, line, total, rankFor, dayNight };
 })();

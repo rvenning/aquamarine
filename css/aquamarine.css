@@ -184,6 +184,43 @@ body {
 .aq-phase.is-day { background: rgba(255,206,59,.18); color: #ffce3b; }
 .aq-phase.is-night { background: rgba(179,156,255,.2); color: var(--aq-night); }
 
+/* Which creatures the hour is paying for.
+ *
+ * The board fades whatever is asleep; this is the legend that says what the
+ * fading means, and on its own it answers "stingray or cuttlefish?" without
+ * anyone having to remember the rule. It sits beside the day/night pill because
+ * that pill is what raises the question. */
+.aq-hour-row { display: flex; align-items: center; gap: .35rem; }
+.aq-hours { display: flex; gap: .2rem; }
+.aq-hour {
+  display: flex; align-items: center; gap: .2rem;
+  padding: .1rem .22rem; border-radius: 6px;
+  background: rgba(0,0,0,.25); border: 1px solid transparent;
+  position: relative;
+}
+.aq-hour-pic { width: 1.15rem; height: 1.15rem; object-fit: contain; display: block; }
+.aq-hour em {
+  font-style: normal; font-size: .6rem; letter-spacing: .04em;
+  color: rgba(234,246,244,.65); white-space: nowrap;
+}
+/* Counting now: lit, and outlined in the colour of the half of the wheel we are
+ * in, so the pill and the creature read as one statement. */
+.aq-hour.is-on { border-color: currentColor; background: rgba(255,255,255,.1); }
+.aq-phase.is-day ~ .aq-hours .aq-hour.is-on { color: #ffce3b; }
+.aq-phase.is-night ~ .aq-hours .aq-hour.is-on { color: var(--aq-night); }
+/* Asleep: faded and struck through, the same language the sheet uses when you
+ * catch one at the wrong hour. Luminance and shape, so it does not depend on
+ * telling two colours apart. */
+/* The fade goes on the picture, not on the chip: putting it on the chip took
+ * the strike down with it to 38% and the one mark that says "not this one" all
+ * but disappeared. */
+.aq-hour:not(.is-on) .aq-hour-pic { opacity: .35; }
+.aq-hour:not(.is-on) em { opacity: .5; }
+.aq-hour:not(.is-on)::after {
+  content: ""; position: absolute; left: 10%; right: 10%; top: 50%;
+  height: 2px; border-radius: 2px; background: #ff6b6b; transform: rotate(-20deg);
+}
+
 /* Air.
  *
  * The first version drew three rows of 7px outlines and was genuinely hard to

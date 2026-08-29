@@ -206,5 +206,9 @@ AQ.Rules.map5 = (() => {
     };
   }
 
-  return { id: "map5", score, hooks, newProgress, fossilsOnLine, collectFossils, FOSSILS, TRACK, WRECK_BONUSES: [] };
+  // Stingrays by day, cuttlefish by night -- the board dims whichever is asleep
+  // and the chips under the wheel say which.
+  const hours = (board, isDay) => AQ.Scoring.dayNight(board, isDay);
+
+  return { id: "map5", score, hooks, newProgress, fossilsOnLine, collectFossils, FOSSILS, TRACK, WRECK_BONUSES: [], hours };
 })();

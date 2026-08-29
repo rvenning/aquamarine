@@ -78,7 +78,12 @@
   <div class="aq-hud">
     <div class="aq-track">
       <canvas id="aq-wheel" width="120" height="120"></canvas>
-      <span class="aq-phase" id="aq-phase">day</span>
+      <!-- Which creatures the hour is paying for. The board fades the ones that
+           are not counting; this is the legend that says what the fading means. -->
+      <div class="aq-hour-row">
+        <span class="aq-phase" id="aq-phase">day</span>
+        <span class="aq-hours" id="aq-hours"></span>
+      </div>
     </div>
 
     <div class="aq-air">

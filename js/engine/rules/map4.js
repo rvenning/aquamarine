@@ -160,5 +160,9 @@ AQ.Rules.map4 = (() => {
     };
   }
 
-  return { id: "map4", score, hooks, newProgress, POWERS, PHOTO_SPACES, WRECK_BONUSES: [] };
+  // Stingrays by day, cuttlefish by night -- the board dims whichever is asleep
+  // and the chips under the wheel say which.
+  const hours = (board, isDay) => AQ.Scoring.dayNight(board, isDay);
+
+  return { id: "map4", score, hooks, newProgress, POWERS, PHOTO_SPACES, WRECK_BONUSES: [], hours };
 })();

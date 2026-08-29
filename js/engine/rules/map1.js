@@ -117,5 +117,9 @@ AQ.Rules.map1 = (() => {
     };
   }
 
-  return { id: "map1", score, WRECK_BONUSES, CORALS };
+  // Stingrays by day, cuttlefish by night -- the board dims whichever is asleep
+  // and the chips under the wheel say which.
+  const hours = (board, isDay) => AQ.Scoring.dayNight(board, isDay);
+
+  return { id: "map1", score, WRECK_BONUSES, CORALS, hours };
 })();

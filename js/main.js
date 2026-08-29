@@ -157,6 +157,7 @@
     renderTanks();
     renderDice();
     renderBonuses();
+    renderHours(day);
     el("aq-score").textContent = app.rules.score(s, app.bonuses, app.progress).total;
 
     app.render.state.dives = s.diveCells.map((cells) => cells.slice());
@@ -183,6 +184,35 @@
     // floating over the result sheet and the bonus you then picked worth nothing
     // -- it was already counted, without it. So the ending waits for the answer.
     if (s.over && !app.awaitingBonus) finish();
+  }
+
+  // Which creatures this hour is paying for.
+  //
+  // The rule costs people points quietly: catch a cuttlefish in daylight and it
+  // is simply crossed out, and on paper you find that out after you have spent
+  // the air getting to it. Two showings of one fact -- the board fades whatever
+  // is asleep, and these chips name it -- both from a single call to the map's
+  // own rules, so the dimming and the legend cannot drift apart.
+  function renderHours(isDay) {
+    const wrap = el("aq-hours");
+    const hours = app.rules.hours ? app.rules.hours(app.board, isDay) : null;
+    if (!hours) {
+      wrap.hidden = true;
+      app.render.state.dormant = null;
+      return;
+    }
+    wrap.hidden = false;
+    wrap.innerHTML = hours.chips.map((c) => {
+      // A map may word its own, because a rule about WHERE something counts does
+      // not fit the sentence for a rule about WHEN.
+      const why = c.title || (c.active
+        ? "counting right now"
+        : "nothing until " + (isDay ? "dark" : "daylight"));
+      return '<span class="aq-hour' + (c.active ? " is-on" : "") + '" title="' + why + '">' +
+        AQ.Icons.img(c.symbol, app.mapId, "aq-hour-pic") +
+        (c.note ? '<em>' + c.note + "</em>" : "") + "</span>";
+    }).join("");
+    app.render.state.dormant = hours.dormant;
   }
 
   // Air, crossed off the way a pencil would.

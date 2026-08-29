@@ -66,6 +66,7 @@ AQ.Render = (() => {
       legal: null,
       marks: [],
       spotlight: null,      // squares the tutorial is pointing at
+      dormant: null,        // objects that would score nothing at this hour
       diver: null,          // cell the diver is at, or null between dives
       splashes: [],         // short-lived flourishes when something is caught
       dive: 0,
@@ -392,7 +393,14 @@ AQ.Render = (() => {
       if (move.squash) ctx.scale(1 / move.squash, move.squash);
       // Half the fish swim the other way, decided once by where they are.
       if (/fish|shark|prey|angler|eel/.test(obj.symbol) && hash(seed, 22) > 0.5) ctx.scale(-1, 1);
-      if (move.fade !== undefined) ctx.globalAlpha = 0.35 + move.fade * 0.65;
+      // A creature that does not count at this hour is drawn faded, so the board
+      // itself answers "is this worth enclosing right now" at the moment you are
+      // dragging a box over it. Faded rather than hidden: it is still there, and
+      // you may still enclose it -- it simply pays nothing until its hour comes
+      // round. The chips under the wheel are the legend for what the fading means.
+      let alpha = move.fade === undefined ? 1 : 0.35 + move.fade * 0.65;
+      if (state.dormant && state.dormant.has(obj.id)) alpha *= 0.32;
+      if (alpha !== 1) ctx.globalAlpha = alpha;
       // A soft shadow underneath lifts a sprite off the water.
       ctx.shadowColor = "rgba(0,0,0,.35)";
       ctx.shadowBlur = L.cell * 0.18;
